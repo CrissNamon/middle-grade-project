@@ -1,6 +1,6 @@
 package ru.danilarassokhin.game;
 
-import ru.danilarassokhin.game.server.NettyServer;
+import ru.danilarassokhin.game.server.netty.NettyServer;
 
 public class GameApplication {
 
