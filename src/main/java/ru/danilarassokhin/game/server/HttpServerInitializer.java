@@ -2,16 +2,19 @@ package ru.danilarassokhin.game.server;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.HttpRequestEncoder;
 
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
   @Override
   protected void initChannel(SocketChannel channel) {
-    var pipeline = channel.pipeline();
-    pipeline.addLast(new HttpRequestDecoder());
-    pipeline.addLast(new HttpResponseEncoder());
-    pipeline.addLast(new HttpServerHandler());
+    channel.pipeline().addLast(
+        new HttpRequestDecoder(),
+        new HttpObjectAggregator(1048576),
+        new HttpRequestEncoder(),
+        new HttpServerHandler()
+    );
   }
 }
