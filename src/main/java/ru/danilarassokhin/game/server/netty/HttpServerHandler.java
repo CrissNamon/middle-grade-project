@@ -15,10 +15,12 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.ResponseEntity;
+import tech.hiddenproject.aide.optional.IfTrueConditional;
 
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessage> {
 
@@ -36,14 +38,14 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessa
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpMessage httpObject) {
     var msg = (FullHttpRequest) httpObject;
     var optionalRequestHandler = dispatcherController.findByKey(httpRequestToKey(msg));
-    optionalRequestHandler.ifPresentOrElse(httpRequestHandler -> {
-      var result = httpRequestHandler.handle(msg);
-      ctx.write(responseEntityToHttpResponse(result))
-          .addListener(ChannelFutureListener.CLOSE);
-    }, () -> {
-      ctx.write(METHOD_NOT_ALLOWED_RESPONSE)
-          .addListener(ChannelFutureListener.CLOSE);
-    });
+    var response = optionalRequestHandler
+        .map(httpRequestHandler -> httpRequestHandler.handle(msg))
+            .map(responseEntity -> responseEntityToHttpResponse(responseEntity, msg))
+                .orElse(METHOD_NOT_ALLOWED_RESPONSE);
+    var channelFeature = ctx.write(response);
+    if (response.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
+      channelFeature.addListener(ChannelFutureListener.CLOSE);
+    }
   }
 
   @Override
@@ -61,13 +63,18 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessa
     return new HttpRequestKey(httpRequest.method(), httpRequest.uri());
   }
 
-  private HttpResponse responseEntityToHttpResponse(ResponseEntity responseEntity) {
+  private HttpResponse responseEntityToHttpResponse(ResponseEntity responseEntity, HttpRequest httpRequest) {
     var responseBody = Optional.ofNullable(responseEntity.body())
         .map(body -> Unpooled.wrappedBuffer(body.toString().getBytes(StandardCharsets.UTF_8)))
         .orElse(Unpooled.EMPTY_BUFFER);
     var response = new DefaultFullHttpResponse(HTTP_VERSION, responseEntity.status(), responseBody);
     response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN);
     response.headers().set(HttpHeaderNames.CONTENT_LENGTH, responseBody.readableBytes());
+    var keepAliveValue = IfTrueConditional.create()
+        .ifTrue(HttpUtil.isKeepAlive(httpRequest))
+          .then(HttpHeaderValues.KEEP_ALIVE)
+        .orElse(HttpHeaderValues.CLOSE);
+    response.headers().set(HttpHeaderNames.CONNECTION, keepAliveValue);
     return response;
   }
 }
