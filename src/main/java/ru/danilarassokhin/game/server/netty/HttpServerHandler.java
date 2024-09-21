@@ -3,6 +3,7 @@ package ru.danilarassokhin.game.server.netty;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,8 +26,6 @@ import tech.hiddenproject.aide.optional.IfTrueConditional;
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessage> {
 
   private static final HttpVersion HTTP_VERSION = HttpVersion.HTTP_1_1;
-  private static final HttpResponse METHOD_NOT_ALLOWED_RESPONSE =
-      new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.METHOD_NOT_ALLOWED);
 
   private final DispatcherController dispatcherController;
 
@@ -41,9 +40,9 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessa
     var response = optionalRequestHandler
         .map(httpRequestHandler -> httpRequestHandler.handle(msg))
             .map(responseEntity -> responseEntityToHttpResponse(responseEntity, msg))
-                .orElse(METHOD_NOT_ALLOWED_RESPONSE);
-    var channelFeature = ctx.write(response);
-    if (response.headers().containsValue(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
+                .orElseGet(() -> createMethodNotAllowedResponse(msg));
+    var channelFeature = ctx.writeAndFlush(response);
+    if (shouldCloseConnection(response)) {
       channelFeature.addListener(ChannelFutureListener.CLOSE);
     }
   }
@@ -65,7 +64,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessa
 
   private HttpResponse responseEntityToHttpResponse(ResponseEntity responseEntity, HttpRequest httpRequest) {
     var responseBody = Optional.ofNullable(responseEntity.body())
-        .map(body -> Unpooled.wrappedBuffer(body.toString().getBytes(StandardCharsets.UTF_8)))
+        .map(body -> Unpooled.wrappedBuffer(createByteBufFromString(body.toString())))
         .orElse(Unpooled.EMPTY_BUFFER);
     var response = new DefaultFullHttpResponse(HTTP_VERSION, responseEntity.status(), responseBody);
     response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN);
@@ -76,5 +75,22 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessa
         .orElse(HttpHeaderValues.CLOSE);
     response.headers().set(HttpHeaderNames.CONNECTION, keepAliveValue);
     return response;
+  }
+
+  private HttpResponse createMethodNotAllowedResponse(HttpRequest httpRequest) {
+    var body = "Method not allowed: " + httpRequest.method() + ":" + httpRequest.uri();
+    return new DefaultFullHttpResponse(HTTP_VERSION, HttpResponseStatus.METHOD_NOT_ALLOWED, createByteBufFromString(body));
+  }
+
+  private ByteBuf createByteBufFromString(String value) {
+    return Unpooled.wrappedBuffer(value.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private boolean shouldCloseConnection(HttpResponse httpResponse) {
+    return httpResponse.headers().containsValue(
+        HttpHeaderNames.CONNECTION,
+        HttpHeaderValues.CLOSE,
+        true
+    ) || httpResponse.status().code() >= 400;
   }
 }
