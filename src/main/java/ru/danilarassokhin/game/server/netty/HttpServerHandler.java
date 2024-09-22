@@ -9,7 +9,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
@@ -23,9 +22,11 @@ import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.ResponseEntity;
 import tech.hiddenproject.aide.optional.IfTrueConditional;
 
-public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessage> {
+public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   private static final HttpVersion HTTP_VERSION = HttpVersion.HTTP_1_1;
+  private static final int HTTP_ERROR_CODES_MIN = 400;
+  private static final String HTTP_METHOD_NOT_ALLOWED_MESSAGE = "Method not allowed %s: %s";
 
   private final DispatcherController dispatcherController;
 
@@ -34,13 +35,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessa
   }
 
   @Override
-  protected void channelRead0(ChannelHandlerContext ctx, FullHttpMessage httpObject) {
-    var msg = (FullHttpRequest) httpObject;
+  protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) {
     var optionalRequestHandler = dispatcherController.findByKey(httpRequestToKey(msg));
     var response = optionalRequestHandler
         .map(httpRequestHandler -> httpRequestHandler.handle(msg))
-            .map(responseEntity -> responseEntityToHttpResponse(responseEntity, msg))
-                .orElseGet(() -> createMethodNotAllowedResponse(msg));
+        .map(responseEntity -> responseEntityToHttpResponse(responseEntity, msg))
+        .orElseGet(() -> createMethodNotAllowedResponse(msg));
     var channelFeature = ctx.writeAndFlush(response);
     if (shouldCloseConnection(response)) {
       channelFeature.addListener(ChannelFutureListener.CLOSE);
@@ -78,7 +78,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessa
   }
 
   private HttpResponse createMethodNotAllowedResponse(HttpRequest httpRequest) {
-    var body = "Method not allowed: " + httpRequest.method() + ":" + httpRequest.uri();
+    var body = String.format(HTTP_METHOD_NOT_ALLOWED_MESSAGE, httpRequest.method().name(), httpRequest.uri());
     return new DefaultFullHttpResponse(HTTP_VERSION, HttpResponseStatus.METHOD_NOT_ALLOWED, createByteBufFromString(body));
   }
 
@@ -91,6 +91,6 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpMessa
         HttpHeaderNames.CONNECTION,
         HttpHeaderValues.CLOSE,
         true
-    ) || httpResponse.status().code() >= 400;
+    ) || httpResponse.status().code() >= HTTP_ERROR_CODES_MIN;
   }
 }

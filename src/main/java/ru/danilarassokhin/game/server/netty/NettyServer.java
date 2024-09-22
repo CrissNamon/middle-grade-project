@@ -8,12 +8,15 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
-import ru.danilarassokhin.game.server.impl.DefaultDispatcherController;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 
 public class NettyServer {
 
-  private final DispatcherController dispatcherController = new DefaultDispatcherController();
+  private final DispatcherController dispatcherController;
+
+  public NettyServer(DispatcherController dispatcherController) {
+    this.dispatcherController = dispatcherController;
+  }
 
   public void get(String uri, HttpRequestHandler handler) {
     dispatcherController.addMapping(new HttpRequestKey(HttpMethod.GET, uri), handler);
