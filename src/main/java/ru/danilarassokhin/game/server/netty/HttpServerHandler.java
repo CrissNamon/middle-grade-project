@@ -19,7 +19,7 @@ import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
-import ru.danilarassokhin.game.server.model.ResponseEntity;
+import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import tech.hiddenproject.aide.optional.IfTrueConditional;
 
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -27,6 +27,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
   private static final HttpVersion HTTP_VERSION = HttpVersion.HTTP_1_1;
   private static final int HTTP_ERROR_CODES_MIN = 400;
   private static final String HTTP_METHOD_NOT_ALLOWED_MESSAGE = "Method not allowed %s: %s";
+  private static final String DEFAULT_CONTENT_TYPE = HttpHeaderValues.TEXT_PLAIN.toString();
 
   private final DispatcherController dispatcherController;
 
@@ -59,15 +60,17 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
   }
 
   private HttpRequestKey httpRequestToKey(HttpRequest httpRequest) {
-    return new HttpRequestKey(httpRequest.method(), httpRequest.uri());
+    var contentType = Optional.ofNullable(httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE))
+        .orElse(DEFAULT_CONTENT_TYPE);
+    return new HttpRequestKey(httpRequest.method(), contentType, httpRequest.uri());
   }
 
-  private HttpResponse responseEntityToHttpResponse(ResponseEntity responseEntity, HttpRequest httpRequest) {
+  private HttpResponse responseEntityToHttpResponse(HttpResponseEntity responseEntity, HttpRequest httpRequest) {
     var responseBody = Optional.ofNullable(responseEntity.body())
-        .map(body -> Unpooled.wrappedBuffer(createByteBufFromString(body.toString())))
+        .map(body -> Unpooled.wrappedBuffer(createByteBufFromString(body)))
         .orElse(Unpooled.EMPTY_BUFFER);
     var response = new DefaultFullHttpResponse(HTTP_VERSION, responseEntity.status(), responseBody);
-    response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN);
+    response.headers().set(HttpHeaderNames.CONTENT_TYPE, responseEntity.contentType());
     response.headers().set(HttpHeaderNames.CONTENT_LENGTH, responseBody.readableBytes());
     var keepAliveValue = IfTrueConditional.create()
         .ifTrue(HttpUtil.isKeepAlive(httpRequest))
