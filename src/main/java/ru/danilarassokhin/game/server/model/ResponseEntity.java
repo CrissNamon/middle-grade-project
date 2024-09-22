@@ -8,4 +8,8 @@ public record ResponseEntity(HttpResponseStatus status, Object body) {
     return new ResponseEntity(HttpResponseStatus.OK, body);
   }
 
+  public static ResponseEntity ok() {
+    return ok(null);
+  }
+
 }
