@@ -62,7 +62,7 @@ public class ReflectiveDispatcherController implements DispatcherController {
   private HttpResponseEntity createMethodNotAllowedResponse(FullHttpRequest httpRequest) {
     return new HttpResponseEntity(
         httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE),
-        HTTP_METHOD_NOT_ALLOWED_MESSAGE,
+        String.format(HTTP_METHOD_NOT_ALLOWED_MESSAGE, httpRequest.method().name(), httpRequest.uri()),
         HttpResponseStatus.METHOD_NOT_ALLOWED
     );
   }
