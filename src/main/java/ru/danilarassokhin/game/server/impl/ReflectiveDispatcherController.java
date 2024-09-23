@@ -2,6 +2,7 @@ package ru.danilarassokhin.game.server.impl;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
@@ -11,7 +12,8 @@ import ru.danilarassokhin.game.server.reflection.HttpHandlerProcessor;
 
 public class ReflectiveDispatcherController implements DispatcherController {
 
-  private final DefaultDispatcherController defaultDispatcherController = new DefaultDispatcherController();
+  private final ConcurrentHashMap<HttpRequestKey, HttpRequestHandler> availableRequestMappings =
+      new ConcurrentHashMap<>();
 
   public ReflectiveDispatcherController(HttpHandlerProcessor httpHandlerProcessor, Object... controllers) {
     Arrays.stream(controllers)
@@ -27,12 +29,12 @@ public class ReflectiveDispatcherController implements DispatcherController {
     findByKey(key).ifPresent(handler -> {
       throw new RuntimeException("Duplicate http request handler! Already contains: " + key);
     });
-    defaultDispatcherController.addMapping(key, mapping);
+    availableRequestMappings.put(key, mapping);
   }
 
   @Override
   public Optional<HttpRequestHandler> findByKey(HttpRequestKey key) {
-    return defaultDispatcherController.findByKey(key);
+    return Optional.ofNullable(availableRequestMappings.get(key));
   }
 
 }
