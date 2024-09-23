@@ -18,7 +18,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import ru.danilarassokhin.game.server.DispatcherController;
-import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import tech.hiddenproject.aide.optional.IfTrueConditional;
 
@@ -26,8 +25,6 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
   private static final HttpVersion HTTP_VERSION = HttpVersion.HTTP_1_1;
   private static final int HTTP_ERROR_CODES_MIN = 400;
-  private static final String HTTP_METHOD_NOT_ALLOWED_MESSAGE = "Method not allowed %s: %s";
-  private static final String DEFAULT_CONTENT_TYPE = HttpHeaderValues.TEXT_PLAIN.toString();
 
   private final DispatcherController dispatcherController;
 
@@ -37,14 +34,16 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) {
-    var optionalRequestHandler = dispatcherController.findByKey(httpRequestToKey(msg));
-    var response = optionalRequestHandler
-        .map(httpRequestHandler -> httpRequestHandler.handle(msg))
-        .map(responseEntity -> responseEntityToHttpResponse(responseEntity, msg))
-        .orElseGet(() -> createMethodNotAllowedResponse(msg));
-    var channelFeature = ctx.writeAndFlush(response);
-    if (shouldCloseConnection(response)) {
-      channelFeature.addListener(ChannelFutureListener.CLOSE);
+    try {
+      var response = responseEntityToHttpResponse(dispatcherController.handleRequest(msg), msg);
+      var channelFeature = ctx.writeAndFlush(response);
+      if (shouldCloseConnection(response)) {
+        channelFeature.addListener(ChannelFutureListener.CLOSE);
+      }
+    } catch (Throwable t) {
+      ctx.writeAndFlush(createInternalServerError())
+          .addListener(ChannelFutureListener.CLOSE);
+      throw new RuntimeException(t);
     }
   }
 
@@ -57,12 +56,6 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     ctx.close();
     throw new RuntimeException(cause);
-  }
-
-  private HttpRequestKey httpRequestToKey(HttpRequest httpRequest) {
-    var contentType = Optional.ofNullable(httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE))
-        .orElse(DEFAULT_CONTENT_TYPE);
-    return new HttpRequestKey(httpRequest.method(), contentType, httpRequest.uri());
   }
 
   private HttpResponse responseEntityToHttpResponse(HttpResponseEntity responseEntity, HttpRequest httpRequest) {
@@ -80,13 +73,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     return response;
   }
 
-  private HttpResponse createMethodNotAllowedResponse(HttpRequest httpRequest) {
-    var body = String.format(HTTP_METHOD_NOT_ALLOWED_MESSAGE, httpRequest.method().name(), httpRequest.uri());
-    return new DefaultFullHttpResponse(HTTP_VERSION, HttpResponseStatus.METHOD_NOT_ALLOWED, createByteBufFromString(body));
-  }
-
   private ByteBuf createByteBufFromString(String value) {
     return Unpooled.wrappedBuffer(value.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private HttpResponse createInternalServerError() {
+    return new DefaultFullHttpResponse(HTTP_VERSION, HttpResponseStatus.INTERNAL_SERVER_ERROR);
   }
 
   private boolean shouldCloseConnection(HttpResponse httpResponse) {
