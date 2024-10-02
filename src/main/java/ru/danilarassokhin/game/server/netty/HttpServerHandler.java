@@ -17,20 +17,18 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
+import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import tech.hiddenproject.aide.optional.IfTrueConditional;
 
+@RequiredArgsConstructor
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   private static final HttpVersion HTTP_VERSION = HttpVersion.HTTP_1_1;
   private static final int HTTP_ERROR_CODES_MIN = 400;
 
   private final DispatcherController dispatcherController;
-
-  public HttpServerHandler(DispatcherController dispatcherController) {
-    this.dispatcherController = dispatcherController;
-  }
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) {

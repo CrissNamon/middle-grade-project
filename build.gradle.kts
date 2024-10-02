@@ -1,6 +1,7 @@
 plugins {
     id("java")
     application
+    id("io.freefair.lombok") version "8.10"
 }
 
 application {

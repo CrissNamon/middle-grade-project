@@ -5,15 +5,13 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.server.DispatcherController;
 
+@RequiredArgsConstructor
 public class NettyServer {
 
   private final DispatcherController dispatcherController;
-
-  public NettyServer(DispatcherController dispatcherController) {
-    this.dispatcherController = dispatcherController;
-  }
 
   public void start() {
     var bossGroup = new NioEventLoopGroup();

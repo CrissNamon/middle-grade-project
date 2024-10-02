@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
+import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
 import ru.danilarassokhin.game.server.annotation.GetRequest;
 import ru.danilarassokhin.game.server.annotation.PostRequest;
@@ -24,6 +25,7 @@ import ru.danilarassokhin.game.server.reflection.HttpHandlerProcessor;
 import ru.danilarassokhin.game.server.reflection.HttpRequestMapperWrapper;
 import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
 
+@RequiredArgsConstructor
 public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
 
   private final static Set<Class<? extends Annotation>> REQUEST_ANNOTATIONS = new HashSet<>() {{
@@ -32,11 +34,6 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
   }};
 
   private final HttpBodyMapper httpBodyMapper;
-
-  public HttpHandlerProcessorImpl(HttpBodyMapper httpBodyMapper) {
-    this.httpBodyMapper = httpBodyMapper;
-    LambdaWrapperHolder.EMPTY.add(HttpRequestMapperWrapper.class);
-  }
 
   public Pair<HttpRequestKey, HttpRequestHandler> methodToRequestHandler(Object controller, Method method) {
     System.out.println("Found request mapper: " + method);

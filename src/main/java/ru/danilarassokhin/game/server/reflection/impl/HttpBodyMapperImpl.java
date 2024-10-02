@@ -1,16 +1,14 @@
 package ru.danilarassokhin.game.server.reflection.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.server.model.HttpMediaType;
 import ru.danilarassokhin.game.server.reflection.HttpBodyMapper;
 
+@RequiredArgsConstructor
 public class HttpBodyMapperImpl implements HttpBodyMapper {
 
   private final ObjectMapper objectMapper;
-
-  public HttpBodyMapperImpl(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
-  }
 
   public String objectToString(String contentType, Object body) {
     try {

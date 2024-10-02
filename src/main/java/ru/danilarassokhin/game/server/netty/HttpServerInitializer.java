@@ -6,8 +6,10 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
+import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.server.DispatcherController;
 
+@RequiredArgsConstructor
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
   private static final int DEFAULT_HTTP_MAX_CONTENT_LENGTH = 1048576;
@@ -16,10 +18,6 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
   private final DispatcherController dispatcherController;
   private final EventExecutorGroup businessLogicExecutorGroup =
       new DefaultEventExecutorGroup(BUSINESS_LOGIC_EXECUTOR_THREADS);
-
-  public HttpServerInitializer(DispatcherController dispatcherController) {
-    this.dispatcherController = dispatcherController;
-  }
 
   @Override
   protected void initChannel(SocketChannel channel) {
