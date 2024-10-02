@@ -20,7 +20,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.server.DispatcherController;
-import ru.danilarassokhin.game.server.exception.HttpServerException;
+import ru.danilarassokhin.game.exception.HttpServerException;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import tech.hiddenproject.aide.optional.IfTrueConditional;
 

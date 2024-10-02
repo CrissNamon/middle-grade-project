@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.server.exception;
+package ru.danilarassokhin.game.exception;
 
 public class HttpServerException extends RuntimeException {
 

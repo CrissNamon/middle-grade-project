@@ -2,7 +2,7 @@ package ru.danilarassokhin.game.server.reflection.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import ru.danilarassokhin.game.server.exception.HttpServerException;
+import ru.danilarassokhin.game.exception.HttpServerException;
 import ru.danilarassokhin.game.server.model.HttpMediaType;
 import ru.danilarassokhin.game.server.reflection.HttpBodyMapper;
 

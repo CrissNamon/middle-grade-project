@@ -5,9 +5,11 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.RequiredArgsConstructor;
-import ru.danilarassokhin.game.server.exception.HttpServerException;
+import lombok.extern.slf4j.Slf4j;
+import ru.danilarassokhin.game.exception.HttpServerException;
 
 @RequiredArgsConstructor
+@Slf4j
 public class NettyServer {
 
   private final int port;
@@ -24,6 +26,7 @@ public class NettyServer {
           .handler(mainHandler)
           .childHandler(childHandler);
       var channel = serverBootstrap.bind(port).sync().channel();
+      log.info("Started server on port: {}", port);
       channel.closeFuture().sync();
     } catch (InterruptedException e) {
       throw new HttpServerException(e);

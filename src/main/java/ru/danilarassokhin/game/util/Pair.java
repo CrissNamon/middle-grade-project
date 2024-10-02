@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.server.model;
+package ru.danilarassokhin.game.util;
 
 public record Pair<A, B>(A first, B second) {
 
