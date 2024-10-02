@@ -1,17 +1,19 @@
 package ru.danilarassokhin.game.server.impl;
 
+import static ru.danilarassokhin.game.server.model.HttpMediaType.TEXT_PLAIN;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
 import ru.danilarassokhin.game.exception.HttpServerException;
+import ru.danilarassokhin.game.server.HttpUtils;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import ru.danilarassokhin.game.util.Pair;
@@ -22,7 +24,6 @@ import ru.danilarassokhin.game.server.reflection.HttpHandlerProcessor;
  */
 public class ReflectiveDispatcherController implements DispatcherController {
 
-  private static final String DEFAULT_CONTENT_TYPE = HttpHeaderValues.TEXT_PLAIN.toString();
   private static final String HTTP_METHOD_NOT_ALLOWED_MESSAGE = "Method not allowed %s: %s";
 
   private final ConcurrentHashMap<HttpRequestKey, HttpRequestHandler> availableRequestMappings =
@@ -64,22 +65,16 @@ public class ReflectiveDispatcherController implements DispatcherController {
   }
 
   private HttpRequestKey httpRequestToKey(HttpRequest httpRequest) {
-    var contentType = getHeaderValue(httpRequest, HttpHeaderNames.CONTENT_TYPE.toString())
-        .orElse(DEFAULT_CONTENT_TYPE);
+    var contentType = HttpUtils.getHeaderValue(httpRequest, HttpHeaderNames.CONTENT_TYPE)
+        .orElse(TEXT_PLAIN);
     return new HttpRequestKey(httpRequest.method(), contentType, httpRequest.uri());
   }
 
   private HttpResponseEntity createMethodNotAllowedResponse(FullHttpRequest httpRequest) {
     return new HttpResponseEntity(
-        getHeaderValue(httpRequest, HttpHeaderNames.CONTENT_TYPE.toString()).orElse(
-            DEFAULT_CONTENT_TYPE),
-        String.format(HTTP_METHOD_NOT_ALLOWED_MESSAGE, httpRequest.method().name(),
-                      httpRequest.uri()),
+        HttpUtils.getHeaderValue(httpRequest, HttpHeaderNames.CONTENT_TYPE.toString()).orElse(TEXT_PLAIN),
+        String.format(HTTP_METHOD_NOT_ALLOWED_MESSAGE, httpRequest.method().name(), httpRequest.uri()),
         HttpResponseStatus.METHOD_NOT_ALLOWED
     );
-  }
-
-  private Optional<String> getHeaderValue(HttpRequest httpRequest, String name) {
-    return Optional.ofNullable(httpRequest.headers().get(name));
   }
 }

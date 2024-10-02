@@ -3,14 +3,17 @@ package ru.danilarassokhin.game.server;
 import static ru.danilarassokhin.game.server.netty.NettyServer.HTTP_VERSION;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.util.AsciiString;
 
 /**
  * Utils for http.
@@ -57,6 +60,14 @@ public class HttpUtils {
         HttpHeaderValues.CLOSE,
         true
     ) || httpResponse.status().code() >= HTTP_ERROR_CODES_MIN;
+  }
+
+  public static Optional<String> getHeaderValue(HttpRequest httpRequest, String name) {
+    return Optional.ofNullable(httpRequest.headers().get(name));
+  }
+
+  public static Optional<String> getHeaderValue(HttpRequest httpRequest, AsciiString name) {
+    return Optional.ofNullable(httpRequest.headers().get(name));
   }
 
 }

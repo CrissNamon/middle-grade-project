@@ -4,6 +4,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.server.annotation.GetRequest;
 import ru.danilarassokhin.game.server.annotation.PostRequest;
+import ru.danilarassokhin.game.server.model.HttpMediaType;
 import ru.danilarassokhin.game.server.model.ResponseEntity;
 
 @Slf4j
@@ -14,7 +15,7 @@ public class TestController {
     return ResponseEntity.ok("pong");
   }
 
-  @PostRequest("/echo")
+  @PostRequest(value = "/echo", consumes = HttpMediaType.TEXT_PLAIN)
   public ResponseEntity echo(String body) {
     return ResponseEntity.ok(body);
   }

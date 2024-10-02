@@ -1,5 +1,7 @@
 package ru.danilarassokhin.game.server.reflection.impl;
 
+import static ru.danilarassokhin.game.server.model.HttpMediaType.TEXT_PLAIN;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +16,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
+import ru.danilarassokhin.game.server.HttpUtils;
 import ru.danilarassokhin.game.server.annotation.GetRequest;
 import ru.danilarassokhin.game.server.annotation.PostRequest;
 import ru.danilarassokhin.game.exception.HttpServerException;
@@ -91,7 +94,7 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
         return httpRequest;
       } else {
         return httpBodyMapper.stringToObject(
-            httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE),
+            HttpUtils.getHeaderValue(httpRequest, HttpHeaderNames.CONTENT_TYPE).orElse(TEXT_PLAIN),
             httpRequest.content().toString(StandardCharsets.UTF_8),
             methodParameter
         );

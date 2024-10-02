@@ -10,4 +10,9 @@ public class HttpMediaType {
    */
   public static final String APPLICATION_JSON = "application/json";
 
+  /**
+   * text/plain media type.
+   */
+  public static final String TEXT_PLAIN = "text/plain";
+
 }
