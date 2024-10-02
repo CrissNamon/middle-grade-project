@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
+import ru.danilarassokhin.game.server.exception.HttpServerException;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import ru.danilarassokhin.game.server.model.Pair;
@@ -24,11 +25,13 @@ public class ReflectiveDispatcherController implements DispatcherController {
   private final ConcurrentHashMap<HttpRequestKey, HttpRequestHandler> availableRequestMappings =
       new ConcurrentHashMap<>();
 
-  public ReflectiveDispatcherController(HttpHandlerProcessor httpHandlerProcessor, Object... controllers) {
+  public ReflectiveDispatcherController(HttpHandlerProcessor httpHandlerProcessor,
+                                        Object... controllers) {
     Arrays.stream(controllers)
         .map(controller -> Pair.of(controller, controller.getClass().getDeclaredMethods()))
         .flatMap(controllerToMethods -> Arrays.stream(controllerToMethods.second())
-            .map(method -> httpHandlerProcessor.methodToRequestHandler(controllerToMethods.first(), method)))
+            .map(method -> httpHandlerProcessor.methodToRequestHandler(controllerToMethods.first(),
+                                                                       method)))
         .forEach(httpRequestMapping ->
                      addMapping(httpRequestMapping.first(), httpRequestMapping.second()));
   }
@@ -36,7 +39,7 @@ public class ReflectiveDispatcherController implements DispatcherController {
   @Override
   public void addMapping(HttpRequestKey key, HttpRequestHandler mapping) {
     findByKey(key).ifPresent(handler -> {
-      throw new RuntimeException("Duplicate http request handler! Already contains: " + key);
+      throw new HttpServerException("Duplicate http request handler! Already contains: " + key);
     });
     availableRequestMappings.put(key, mapping);
   }
@@ -54,17 +57,22 @@ public class ReflectiveDispatcherController implements DispatcherController {
   }
 
   private HttpRequestKey httpRequestToKey(HttpRequest httpRequest) {
-    var contentType = Optional.ofNullable(httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE))
+    var contentType = getHeaderValue(httpRequest, HttpHeaderNames.CONTENT_TYPE.toString())
         .orElse(DEFAULT_CONTENT_TYPE);
     return new HttpRequestKey(httpRequest.method(), contentType, httpRequest.uri());
   }
 
   private HttpResponseEntity createMethodNotAllowedResponse(FullHttpRequest httpRequest) {
     return new HttpResponseEntity(
-        httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE),
-        String.format(HTTP_METHOD_NOT_ALLOWED_MESSAGE, httpRequest.method().name(), httpRequest.uri()),
+        getHeaderValue(httpRequest, HttpHeaderNames.CONTENT_TYPE.toString()).orElse(
+            DEFAULT_CONTENT_TYPE),
+        String.format(HTTP_METHOD_NOT_ALLOWED_MESSAGE, httpRequest.method().name(),
+                      httpRequest.uri()),
         HttpResponseStatus.METHOD_NOT_ALLOWED
     );
   }
 
+  private Optional<String> getHeaderValue(HttpRequest httpRequest, String name) {
+    return Optional.ofNullable(httpRequest.headers().get(name));
+  }
 }

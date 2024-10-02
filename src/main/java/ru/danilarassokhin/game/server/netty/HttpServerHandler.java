@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.server.DispatcherController;
+import ru.danilarassokhin.game.server.exception.HttpServerException;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import tech.hiddenproject.aide.optional.IfTrueConditional;
 
@@ -41,7 +42,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     } catch (Throwable t) {
       ctx.writeAndFlush(createInternalServerError())
           .addListener(ChannelFutureListener.CLOSE);
-      throw new RuntimeException(t);
+      throw new HttpServerException(t);
     }
   }
 
@@ -52,8 +53,9 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    ctx.close();
-    throw new RuntimeException(cause);
+    ctx.writeAndFlush(createInternalServerError())
+        .addListener(ChannelFutureListener.CLOSE);
+    cause.printStackTrace();
   }
 
   private HttpResponse responseEntityToHttpResponse(HttpResponseEntity responseEntity, HttpRequest httpRequest) {

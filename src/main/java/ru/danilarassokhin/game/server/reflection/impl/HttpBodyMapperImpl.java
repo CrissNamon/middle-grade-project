@@ -2,6 +2,7 @@ package ru.danilarassokhin.game.server.reflection.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import ru.danilarassokhin.game.server.exception.HttpServerException;
 import ru.danilarassokhin.game.server.model.HttpMediaType;
 import ru.danilarassokhin.game.server.reflection.HttpBodyMapper;
 
@@ -21,7 +22,7 @@ public class HttpBodyMapperImpl implements HttpBodyMapper {
         }
       }
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new HttpServerException(e);
     }
   }
 
@@ -36,7 +37,7 @@ public class HttpBodyMapperImpl implements HttpBodyMapper {
         }
       }
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new HttpServerException(e);
     }
   }
 

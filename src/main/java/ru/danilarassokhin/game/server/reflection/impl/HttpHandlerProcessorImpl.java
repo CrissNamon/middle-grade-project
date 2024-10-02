@@ -12,9 +12,12 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
 import ru.danilarassokhin.game.server.annotation.GetRequest;
 import ru.danilarassokhin.game.server.annotation.PostRequest;
+import ru.danilarassokhin.game.server.exception.HttpServerException;
 import ru.danilarassokhin.game.server.model.HttpRequestHandlerData;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
@@ -26,7 +29,12 @@ import ru.danilarassokhin.game.server.reflection.HttpRequestMapperWrapper;
 import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
 
 @RequiredArgsConstructor
+@Slf4j
 public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
+
+  static {
+    LambdaWrapperHolder.EMPTY.add(HttpRequestMapperWrapper.class);
+  }
 
   private final static Set<Class<? extends Annotation>> REQUEST_ANNOTATIONS = new HashSet<>() {{
     add(GetRequest.class);
@@ -36,7 +44,7 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
   private final HttpBodyMapper httpBodyMapper;
 
   public Pair<HttpRequestKey, HttpRequestHandler> methodToRequestHandler(Object controller, Method method) {
-    System.out.println("Found request mapper: " + method);
+    log.debug("Found request mapper: {}", method);
     var handlerData = createHttpRequestHandlerDataFromMethod(method);
     HttpRequestHandler handler = createHttpRequestHandlerFromMethod(controller, method, handlerData);
     return Pair.of(handlerData.requestKey(), handler);
@@ -54,7 +62,7 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
   private HttpRequestHandlerData annotationToHttpRequestHandlerData(Annotation annotation) {
     switch (annotation) {
       case GetRequest getRequest -> {
-        System.out.println("Found GET request mapper: " + annotation);
+        log.debug("Found GET request mapper: {}", annotation);
         return new HttpRequestHandlerData(
             new HttpRequestKey(HttpMethod.GET, getRequest.consumes(), getRequest.value()),
             getRequest.consumes(),
@@ -62,21 +70,21 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
         );
       }
       case PostRequest postRequest -> {
-        System.out.println("Found POST request mapper: " + annotation);
+        log.debug("Found POST request mapper: {}", annotation);
         return new HttpRequestHandlerData(
             new HttpRequestKey(HttpMethod.POST, postRequest.consumes(), postRequest.value()),
             postRequest.consumes(),
             postRequest.produces()
         );
       }
-      default -> throw new RuntimeException("Unknown request mapper annotation");
+      default -> throw new HttpServerException("Unknown request mapper annotation");
     }
   }
 
   private Object getMethodParameterFromHttpRequest(Method method, FullHttpRequest httpRequest) {
     var methodParameters = method.getParameterTypes();
     if (methodParameters.length != 1) {
-      throw new RuntimeException("Wrong method parameters count: " + methodParameters.length);
+      throw new HttpServerException("Wrong method parameters count: " + methodParameters.length);
     }
     try {
       var methodParameter = methodParameters[0];
@@ -90,7 +98,7 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
         );
       }
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new HttpServerException(e);
     }
   }
 
