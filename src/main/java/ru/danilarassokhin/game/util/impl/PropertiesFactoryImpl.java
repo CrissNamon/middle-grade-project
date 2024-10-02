@@ -7,6 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.util.PropertiesFactory;
 import ru.danilarassokhin.game.exception.ApplicationException;
 
+/**
+ * Provides storage for application properties.
+ * Properties will be read from resources/application.properties files.
+ */
 @Slf4j
 public class PropertiesFactoryImpl implements PropertiesFactory {
 

@@ -17,6 +17,9 @@ import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import ru.danilarassokhin.game.util.Pair;
 import ru.danilarassokhin.game.server.reflection.HttpHandlerProcessor;
 
+/**
+ * Controller for dispatching request among handlers.
+ */
 public class ReflectiveDispatcherController implements DispatcherController {
 
   private static final String DEFAULT_CONTENT_TYPE = HttpHeaderValues.TEXT_PLAIN.toString();
@@ -25,6 +28,10 @@ public class ReflectiveDispatcherController implements DispatcherController {
   private final ConcurrentHashMap<HttpRequestKey, HttpRequestHandler> availableRequestMappings =
       new ConcurrentHashMap<>();
 
+  /**
+   * @param httpHandlerProcessor Processor for handlers.
+   * @param controllers Http controllers classes.
+   */
   public ReflectiveDispatcherController(HttpHandlerProcessor httpHandlerProcessor,
                                         Object... controllers) {
     Arrays.stream(controllers)

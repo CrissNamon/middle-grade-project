@@ -12,22 +12,45 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
+/**
+ * Utils for http.
+ */
 public class HttpUtils {
 
   private static final int HTTP_ERROR_CODES_MIN = 400;
 
+  /**
+   * Creates Http response with 500 response code.
+   * @return {@link HttpResponse}
+   */
   public static HttpResponse createInternalServerError() {
     return new DefaultFullHttpResponse(HTTP_VERSION, HttpResponseStatus.INTERNAL_SERVER_ERROR);
   }
 
+  /**
+   * Creates Http response with 401 response code.
+   * @return {@link HttpResponse}
+   */
   public static HttpResponse createUnauthorizedError() {
     return new DefaultFullHttpResponse(HTTP_VERSION, HttpResponseStatus.UNAUTHORIZED);
   }
 
+  /**
+   * Maps string to {@link ByteBuf}.
+   *
+   * @param value String value
+   * @return {@link ByteBuf}
+   */
   public static ByteBuf createByteBufFromString(String value) {
     return Unpooled.wrappedBuffer(value.getBytes(StandardCharsets.UTF_8));
   }
 
+  /**
+   * Checks if connection should be closed after writing.
+   *
+   * @param httpResponse {@link HttpResponse}
+   * @return true if connection should be closed
+   */
   public static boolean shouldCloseConnection(HttpResponse httpResponse) {
     return httpResponse.headers().containsValue(
         HttpHeaderNames.CONNECTION,

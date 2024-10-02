@@ -14,6 +14,10 @@ import ru.danilarassokhin.game.exception.AuthenticationException;
 import ru.danilarassokhin.game.server.HttpRequestFilter;
 import ru.danilarassokhin.game.server.HttpUtils;
 
+/**
+ * Handler for filtering http requests.
+ * @see HttpRequestFilter
+ */
 @Slf4j
 @Sharable
 public class HttpFilterHandler extends SimpleChannelInboundHandler<FullHttpRequest> {

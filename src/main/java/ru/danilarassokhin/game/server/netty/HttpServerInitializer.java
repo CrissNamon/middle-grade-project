@@ -12,6 +12,10 @@ import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.HttpRequestFilter;
 
+/**
+ * Initializer for Netty's pipeline.
+ * Uses different {@link EventExecutorGroup} for {@link HttpFilterHandler} and {@link HttpServerHandler}.
+ */
 @RequiredArgsConstructor
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 

@@ -25,6 +25,11 @@ import ru.danilarassokhin.game.exception.HttpServerException;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import tech.hiddenproject.aide.optional.IfTrueConditional;
 
+/**
+ * Handler for processing http requests.
+ * Uses {@link DispatcherController} for dispatching requests among handlers.
+ * @see DispatcherController
+ */
 @RequiredArgsConstructor
 @Slf4j
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
