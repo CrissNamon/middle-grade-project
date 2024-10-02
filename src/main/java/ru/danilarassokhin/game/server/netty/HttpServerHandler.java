@@ -1,9 +1,12 @@
 package ru.danilarassokhin.game.server.netty;
 
-import java.nio.charset.StandardCharsets;
+import static ru.danilarassokhin.game.server.HttpUtils.createByteBufFromString;
+import static ru.danilarassokhin.game.server.HttpUtils.createInternalServerError;
+import static ru.danilarassokhin.game.server.HttpUtils.shouldCloseConnection;
+import static ru.danilarassokhin.game.server.netty.NettyServer.HTTP_VERSION;
+
 import java.util.Optional;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,9 +17,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.HttpVersion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.server.DispatcherController;
@@ -27,9 +28,6 @@ import tech.hiddenproject.aide.optional.IfTrueConditional;
 @RequiredArgsConstructor
 @Slf4j
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-
-  private static final HttpVersion HTTP_VERSION = HttpVersion.HTTP_1_1;
-  private static final int HTTP_ERROR_CODES_MIN = 400;
 
   private final DispatcherController dispatcherController;
 
@@ -73,21 +71,5 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         .orElse(HttpHeaderValues.CLOSE);
     response.headers().set(HttpHeaderNames.CONNECTION, keepAliveValue);
     return response;
-  }
-
-  private ByteBuf createByteBufFromString(String value) {
-    return Unpooled.wrappedBuffer(value.getBytes(StandardCharsets.UTF_8));
-  }
-
-  private HttpResponse createInternalServerError() {
-    return new DefaultFullHttpResponse(HTTP_VERSION, HttpResponseStatus.INTERNAL_SERVER_ERROR);
-  }
-
-  private boolean shouldCloseConnection(HttpResponse httpResponse) {
-    return httpResponse.headers().containsValue(
-        HttpHeaderNames.CONNECTION,
-        HttpHeaderValues.CLOSE,
-        true
-    ) || httpResponse.status().code() >= HTTP_ERROR_CODES_MIN;
   }
 }

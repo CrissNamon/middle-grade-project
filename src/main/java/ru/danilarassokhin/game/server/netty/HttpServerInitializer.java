@@ -1,5 +1,7 @@
 package ru.danilarassokhin.game.server.netty;
 
+import java.util.Set;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -8,6 +10,7 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.server.DispatcherController;
+import ru.danilarassokhin.game.server.HttpRequestFilter;
 
 @RequiredArgsConstructor
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
@@ -18,6 +21,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
   private final DispatcherController dispatcherController;
   private final EventExecutorGroup businessLogicExecutorGroup =
       new DefaultEventExecutorGroup(BUSINESS_LOGIC_EXECUTOR_THREADS);
+  private final Set<HttpRequestFilter> requestFilterSet;
 
   @Override
   protected void initChannel(SocketChannel channel) {
@@ -27,6 +31,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     );
     channel.pipeline().addLast(
         businessLogicExecutorGroup,
+        new HttpFilterHandler(requestFilterSet),
         new HttpServerHandler(dispatcherController)
     );
   }

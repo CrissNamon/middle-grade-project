@@ -4,6 +4,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpVersion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.exception.HttpServerException;
@@ -11,6 +12,8 @@ import ru.danilarassokhin.game.exception.HttpServerException;
 @RequiredArgsConstructor
 @Slf4j
 public class NettyServer {
+
+  public static final HttpVersion HTTP_VERSION = HttpVersion.HTTP_1_1;
 
   private final int port;
   private final ChannelHandler mainHandler;
