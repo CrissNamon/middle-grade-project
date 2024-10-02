@@ -18,12 +18,14 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.exception.HttpServerException;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 import tech.hiddenproject.aide.optional.IfTrueConditional;
 
 @RequiredArgsConstructor
+@Slf4j
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   private static final HttpVersion HTTP_VERSION = HttpVersion.HTTP_1_1;
@@ -53,9 +55,9 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    log.error("Exception during channel read", cause);
     ctx.writeAndFlush(createInternalServerError())
         .addListener(ChannelFutureListener.CLOSE);
-    cause.printStackTrace();
   }
 
   private HttpResponse responseEntityToHttpResponse(HttpResponseEntity responseEntity, HttpRequest httpRequest) {

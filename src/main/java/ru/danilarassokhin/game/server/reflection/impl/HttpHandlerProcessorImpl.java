@@ -12,7 +12,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
 import ru.danilarassokhin.game.server.annotation.GetRequest;
