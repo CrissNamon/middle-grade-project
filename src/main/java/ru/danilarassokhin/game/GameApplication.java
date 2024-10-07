@@ -21,7 +21,7 @@ public class GameApplication {
   private static final int DEFAULT_PORT = 8080;
 
   public static void main(String[] args) {
-    PropertiesFactoryImpl propertiesFactory = new PropertiesFactoryImpl();
+    var propertiesFactory = new PropertiesFactoryImpl();
     var testController = new TestController();
     var objectMapper = new ObjectMapper();
     var httpBodyMapper = new HttpBodyMapperImpl(objectMapper);
