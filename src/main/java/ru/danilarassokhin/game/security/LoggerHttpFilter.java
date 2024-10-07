@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.server.HttpRequestFilter;
 
 @Slf4j
-public class TestHttpFilter implements HttpRequestFilter {
+public class LoggerHttpFilter implements HttpRequestFilter {
 
   @Override
   public void filter(FullHttpRequest httpRequest) {

@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.controller;
+package ru.danilarassokhin.game.model;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import lombok.extern.slf4j.Slf4j;
