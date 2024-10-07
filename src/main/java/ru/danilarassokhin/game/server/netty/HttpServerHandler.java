@@ -1,8 +1,8 @@
 package ru.danilarassokhin.game.server.netty;
 
-import static ru.danilarassokhin.game.server.HttpUtils.createByteBufFromString;
-import static ru.danilarassokhin.game.server.HttpUtils.createInternalServerError;
-import static ru.danilarassokhin.game.server.HttpUtils.shouldCloseConnection;
+import static ru.danilarassokhin.game.util.HttpUtils.createByteBufFromString;
+import static ru.danilarassokhin.game.util.HttpUtils.createInternalServerError;
+import static ru.danilarassokhin.game.util.HttpUtils.shouldCloseConnection;
 import static ru.danilarassokhin.game.server.netty.NettyServer.HTTP_VERSION;
 
 import java.util.Optional;

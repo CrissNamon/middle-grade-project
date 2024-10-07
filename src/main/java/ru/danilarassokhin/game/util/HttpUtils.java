@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.server;
+package ru.danilarassokhin.game.util;
 
 import static ru.danilarassokhin.game.server.netty.NettyServer.HTTP_VERSION;
 

@@ -1,6 +1,6 @@
 package ru.danilarassokhin.game.server.netty;
 
-import static ru.danilarassokhin.game.server.HttpUtils.createInternalServerError;
+import static ru.danilarassokhin.game.util.HttpUtils.createInternalServerError;
 
 import java.util.Set;
 
@@ -12,7 +12,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.exception.AuthenticationException;
 import ru.danilarassokhin.game.server.HttpRequestFilter;
-import ru.danilarassokhin.game.server.HttpUtils;
+import ru.danilarassokhin.game.util.HttpUtils;
 
 /**
  * Handler for filtering http requests.

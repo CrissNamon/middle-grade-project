@@ -13,10 +13,10 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
 import ru.danilarassokhin.game.exception.HttpServerException;
-import ru.danilarassokhin.game.server.HttpUtils;
+import ru.danilarassokhin.game.util.HttpUtils;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
-import ru.danilarassokhin.game.util.Pair;
+import ru.danilarassokhin.game.server.model.Pair;
 import ru.danilarassokhin.game.server.reflection.HttpHandlerProcessor;
 
 /**

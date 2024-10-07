@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.util;
+package ru.danilarassokhin.game.server.model;
 
 /**
  * Immutable pair of objects.

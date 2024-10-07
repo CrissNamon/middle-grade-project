@@ -16,20 +16,23 @@ import io.netty.handler.codec.http.HttpRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
-import ru.danilarassokhin.game.server.HttpUtils;
+import ru.danilarassokhin.game.util.HttpUtils;
 import ru.danilarassokhin.game.server.annotation.GetRequest;
 import ru.danilarassokhin.game.server.annotation.PostRequest;
 import ru.danilarassokhin.game.exception.HttpServerException;
 import ru.danilarassokhin.game.server.model.HttpRequestHandlerData;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
-import ru.danilarassokhin.game.util.Pair;
+import ru.danilarassokhin.game.server.model.Pair;
 import ru.danilarassokhin.game.server.model.ResponseEntity;
 import ru.danilarassokhin.game.server.reflection.HttpBodyMapper;
 import ru.danilarassokhin.game.server.reflection.HttpHandlerProcessor;
 import ru.danilarassokhin.game.server.reflection.HttpRequestMapperWrapper;
 import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
 
+/**
+ * Processor for impl classes.
+ */
 @RequiredArgsConstructor
 @Slf4j
 public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
@@ -45,6 +48,12 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
 
   private final HttpBodyMapper httpBodyMapper;
 
+  /**
+   * Converts methods to {@link HttpRequestKey} and {@link HttpRequestHandler} pair.
+   * @param controller Controller instance
+   * @param method Method to process
+   * @return {@link Pair}
+   */
   public Pair<HttpRequestKey, HttpRequestHandler> methodToRequestHandler(Object controller, Method method) {
     log.debug("Found request mapper: {}", method);
     var handlerData = createHttpRequestHandlerDataFromMethod(method);
