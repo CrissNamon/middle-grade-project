@@ -62,10 +62,22 @@ public class HttpUtils {
     ) || httpResponse.status().code() >= HTTP_ERROR_CODES_MIN;
   }
 
+  /**
+   * Gets header value from {@link HttpRequest}.
+   * @param httpRequest {@link HttpRequest}
+   * @param name Header name
+   * @return Optional header value
+   */
   public static Optional<String> getHeaderValue(HttpRequest httpRequest, String name) {
     return Optional.ofNullable(httpRequest.headers().get(name));
   }
 
+  /**
+   * Gets header value from {@link HttpRequest}.
+   * @param httpRequest {@link HttpRequest}
+   * @param name Header name
+   * @return Optional header value
+   */
   public static Optional<String> getHeaderValue(HttpRequest httpRequest, AsciiString name) {
     return Optional.ofNullable(httpRequest.headers().get(name));
   }
