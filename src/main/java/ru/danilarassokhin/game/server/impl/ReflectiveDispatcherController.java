@@ -10,13 +10,13 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
 import ru.danilarassokhin.game.exception.HttpServerException;
 import ru.danilarassokhin.game.util.HttpUtils;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
-import ru.danilarassokhin.game.server.model.Pair;
 import ru.danilarassokhin.game.server.reflection.HttpHandlerProcessor;
 
 /**
@@ -36,12 +36,12 @@ public class ReflectiveDispatcherController implements DispatcherController {
   public ReflectiveDispatcherController(HttpHandlerProcessor httpHandlerProcessor,
                                         Object... controllers) {
     Arrays.stream(controllers)
-        .map(controller -> Pair.of(controller, controller.getClass().getDeclaredMethods()))
-        .flatMap(controllerToMethods -> Arrays.stream(controllerToMethods.second())
-            .map(method -> httpHandlerProcessor.methodToRequestHandler(controllerToMethods.first(),
+        .map(controller -> ImmutablePair.of(controller, controller.getClass().getDeclaredMethods()))
+        .flatMap(controllerToMethods -> Arrays.stream(controllerToMethods.getRight())
+            .map(method -> httpHandlerProcessor.methodToRequestHandler(controllerToMethods.getLeft(),
                                                                        method)))
         .forEach(httpRequestMapping ->
-                     addMapping(httpRequestMapping.first(), httpRequestMapping.second()));
+                     addMapping(httpRequestMapping.getLeft(), httpRequestMapping.getRight()));
   }
 
   @Override
