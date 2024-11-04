@@ -22,4 +22,8 @@ public interface PropertiesFactory {
    * @return Optional property value
    */
   Optional<String> getAsString(String name);
+
+  Optional<Boolean> getAsBoolean(String name);
+
+  Optional<String[]> getAsStringArray(String name, String delimiter);
 }

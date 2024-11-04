@@ -36,4 +36,14 @@ public class PropertiesFactoryImpl implements PropertiesFactory {
   public Optional<String> getAsString(String name) {
     return Optional.ofNullable(applicationProperties.getProperty(name));
   }
+
+  @Override
+  public Optional<Boolean> getAsBoolean(String name) {
+    return Optional.ofNullable(applicationProperties.getProperty(name)).map(Boolean::valueOf);
+  }
+
+  @Override
+  public Optional<String[]> getAsStringArray(String name, String delimiter) {
+    return Optional.ofNullable(applicationProperties.getProperty(name)).map(it -> it.split(delimiter));
+  }
 }
