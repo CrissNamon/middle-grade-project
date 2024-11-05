@@ -11,7 +11,6 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
 import ru.danilarassokhin.game.exception.HttpServerException;
@@ -30,20 +29,16 @@ public class ReflectiveDispatcherController implements DispatcherController {
   private final ConcurrentHashMap<HttpRequestKey, HttpRequestHandler> availableRequestMappings =
       new ConcurrentHashMap<>();
 
+  private final HttpHandlerProcessor httpHandlerProcessor;
+
   /**
    * @param httpHandlerProcessor Processor for handlers.
    * @param controllers Http controllers classes.
    */
   public ReflectiveDispatcherController(HttpHandlerProcessor httpHandlerProcessor,
                                         Object... controllers) {
-    Arrays.stream(controllers)
-        .map(controller -> ImmutablePair.of(controller, controller.getClass().getDeclaredMethods()))
-        .flatMap(controllerToMethods -> Arrays.stream(controllerToMethods.getRight())
-            .map(method -> httpHandlerProcessor.methodToRequestHandler(controllerToMethods.getLeft(),
-                                                                       method)))
-        .filter(Objects::nonNull)
-        .forEach(httpRequestMapping ->
-                     addMapping(httpRequestMapping.getLeft(), httpRequestMapping.getRight()));
+    this.httpHandlerProcessor = httpHandlerProcessor;
+    Arrays.stream(controllers).forEach(this::extractMappings);
   }
 
   @Override
@@ -64,6 +59,14 @@ public class ReflectiveDispatcherController implements DispatcherController {
     var optionalRequestHandler = findByKey(httpRequestToKey(httpRequest));
     return optionalRequestHandler.map(httpRequestHandler -> httpRequestHandler.handle(httpRequest))
         .orElseGet(() -> createMethodNotAllowedResponse(httpRequest));
+  }
+
+  private void extractMappings(Object controller) {
+    Arrays.stream(controller.getClass().getDeclaredMethods())
+        .map(method -> httpHandlerProcessor.methodToRequestHandler(controller, method))
+        .filter(Objects::nonNull)
+        .forEach(httpRequestMapping ->
+                     addMapping(httpRequestMapping.getLeft(), httpRequestMapping.getRight()));
   }
 
   private HttpRequestKey httpRequestToKey(HttpRequest httpRequest) {

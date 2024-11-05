@@ -1,16 +1,20 @@
-package ru.danilarassokhin.game.service.impl;
+package ru.danilarassokhin.game.sql.service.impl;
 
 import javax.sql.DataSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
-import ru.danilarassokhin.game.service.TransactionManager;
+import ru.danilarassokhin.game.exception.DataIntegrityException;
+import ru.danilarassokhin.game.exception.DataSourceException;
+import ru.danilarassokhin.game.sql.service.TransactionManager;
 import ru.danilarassokhin.game.util.SneakyFunction;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.annotation.Autofill;
@@ -30,11 +34,11 @@ public class TransactionManagerImpl implements TransactionManager {
       var result = body.apply(connection);
       connection.commit();
       return result;
-    } catch (RuntimeException e) {
+    } catch (DataSourceException | DataIntegrityException e) {
       rollbackSafely(connection);
-      throw new RuntimeException(e);
+      throw e;
     } catch (Throwable e) {
-      throw new RuntimeException(e);
+      throw new DataSourceException(e);
     } finally {
       closeSafely(connection);
     }
@@ -71,11 +75,14 @@ public class TransactionManagerImpl implements TransactionManager {
           case Boolean b -> statement.setBoolean(index, b);
           case Double d -> statement.setDouble(index, d);
           case UUID uuid -> statement.setObject(index, uuid);
+          case Enum<?> e -> statement.setString(index, e.name());
           default -> statement.setObject(index, value);
         }
       }
-    } catch (Throwable t) {
-      throw new RuntimeException(t);
+    } catch (SQLIntegrityConstraintViolationException e) {
+      throw new DataIntegrityException(e);
+    } catch (SQLException e) {
+      throw new DataSourceException(e);
     }
   }
 

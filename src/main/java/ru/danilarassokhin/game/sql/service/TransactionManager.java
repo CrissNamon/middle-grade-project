@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.service;
+package ru.danilarassokhin.game.sql.service;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

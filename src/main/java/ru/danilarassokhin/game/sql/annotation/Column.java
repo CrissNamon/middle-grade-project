@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.service.annotation;
+package ru.danilarassokhin.game.sql.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,14 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks method as select query.
+ * Marks parameter as table column.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface Select {
+@Target(ElementType.PARAMETER)
+public @interface Column {
 
   /**
-   * Sql query.
+   * Column name.
    */
   String value();
 

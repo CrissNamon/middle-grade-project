@@ -1,9 +1,10 @@
-package ru.danilarassokhin.game.service.impl;
+package ru.danilarassokhin.game.sql.service.impl;
 
 import java.lang.reflect.Proxy;
 
 import lombok.RequiredArgsConstructor;
-import ru.danilarassokhin.game.service.annotation.GameRepository;
+import ru.danilarassokhin.game.exception.RepositoryException;
+import ru.danilarassokhin.game.sql.annotation.GameRepository;
 import tech.hiddenproject.progressive.annotation.GameBean;
 import tech.hiddenproject.progressive.basic.injection.BeanDefinition;
 import tech.hiddenproject.progressive.injection.BeanFactory;
@@ -24,7 +25,7 @@ public class RepositoryBeanFactory implements BeanFactory {
     GameRepository annotation = ComponentAnnotationProcessor.findAnnotation(
         beanClass, GameRepository.class);
     if (annotation == null) {
-      throw new RuntimeException("No @GameRepository annotation specified!");
+      throw new RepositoryException("No @GameRepository annotation specified!");
     }
     String beanName = annotation.name();
     if (beanName.isEmpty()) {

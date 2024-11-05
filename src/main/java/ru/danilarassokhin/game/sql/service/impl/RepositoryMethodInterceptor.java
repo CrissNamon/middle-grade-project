@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.service.impl;
+package ru.danilarassokhin.game.sql.service.impl;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -6,9 +6,10 @@ import java.util.Collection;
 import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
-import ru.danilarassokhin.game.service.annotation.Entity;
-import ru.danilarassokhin.game.service.annotation.Select;
-import ru.danilarassokhin.game.service.annotation.Update;
+import ru.danilarassokhin.game.exception.RepositoryException;
+import ru.danilarassokhin.game.sql.annotation.Entity;
+import ru.danilarassokhin.game.sql.annotation.Select;
+import ru.danilarassokhin.game.sql.annotation.Update;
 
 /**
  * {@link InvocationHandler} for repository proxy.
@@ -33,7 +34,7 @@ public class RepositoryMethodInterceptor implements InvocationHandler {
     if (originMethod.isAnnotationPresent(Update.class)) {
       return processUpdateMethod(entityType, originMethod, arguments);
     }
-    throw new RuntimeException();
+    throw new RepositoryException("Method " + originMethod + " could not be processed!");
   }
 
   private Object[] processArguments(Object[] args) {
@@ -50,8 +51,9 @@ public class RepositoryMethodInterceptor implements InvocationHandler {
 
   private Object processSelectMethod(Class<?> entityType, Method originMethod, Object[] args) {
     var resultType = (!Collection.class.isAssignableFrom(originMethod.getReturnType()) && !originMethod.getReturnType().equals(entityType)) ? originMethod.getReturnType() : entityType;
-    var query = originMethod.getAnnotation(Select.class).value();
-    var result = defaultRepository.executeQuery(resultType, processQueryString(query, entityType), args);
+    var select = originMethod.getAnnotation(Select.class);
+    var query = processQueryString(select.value(), entityType);
+    var result = defaultRepository.executeQuery(resultType, query, select.rawResult(), args);
     if (originMethod.getReturnType().equals(void.class)) {
       return null;
     }
@@ -59,7 +61,7 @@ public class RepositoryMethodInterceptor implements InvocationHandler {
       return result;
     }
     if (result.size() > 1 && !Collection.class.isAssignableFrom(originMethod.getReturnType())) {
-      throw new RuntimeException();
+      throw new RepositoryException("Could not process result of method " + originMethod);
     }
     if (result.size() == 1 && !Collection.class.isAssignableFrom(originMethod.getReturnType())) {
       return result.getFirst();
@@ -67,7 +69,7 @@ public class RepositoryMethodInterceptor implements InvocationHandler {
     if (result.isEmpty() && !Collection.class.isAssignableFrom(originMethod.getReturnType())) {
       return null;
     }
-    throw new RuntimeException();
+    throw new RepositoryException("Could not process result of method " + originMethod);
   }
 
   private Object processUpdateMethod(Class<?> entityType, Method originMethod, Object[] args) {
@@ -79,6 +81,6 @@ public class RepositoryMethodInterceptor implements InvocationHandler {
     if (originMethod.getReturnType().isAssignableFrom(Integer.class) || originMethod.getReturnType().isAssignableFrom(int.class)) {
       return result;
     }
-    throw new RuntimeException();
+    throw new RepositoryException("Could not process result of method " + originMethod);
   }
 }

@@ -15,7 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.danilarassokhin.game.service.impl.TransactionManagerImpl;
+import ru.danilarassokhin.game.sql.service.impl.TransactionManagerImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class TransactionManagerTest {

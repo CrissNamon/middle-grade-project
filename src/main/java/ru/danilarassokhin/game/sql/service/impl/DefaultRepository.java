@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.service.impl;
+package ru.danilarassokhin.game.sql.service.impl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
@@ -10,14 +10,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import ru.danilarassokhin.game.service.annotation.Column;
-import ru.danilarassokhin.game.service.annotation.Entity;
-import ru.danilarassokhin.game.service.TransactionManager;
+import ru.danilarassokhin.game.exception.DataSourceException;
+import ru.danilarassokhin.game.exception.RepositoryException;
+import ru.danilarassokhin.game.sql.annotation.Column;
+import ru.danilarassokhin.game.sql.annotation.Entity;
+import ru.danilarassokhin.game.sql.service.TransactionManager;
 import ru.danilarassokhin.game.util.TypeUtils;
+import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.BasicComponentManager;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
@@ -42,18 +47,21 @@ public class DefaultRepository {
    * @param args SQL query arguments
    * @return List of results
    */
-  public List<Object> executeQuery(Class<?> resultType, String query, Object... args) {
+  public List<Object> executeQuery(Class<?> resultType, String query, boolean rawResult, Object... args) {
     return transactionManager.executeQuery(processQueryString(query), resultSet -> {
       try(resultSet) {
+        if(rawResult) {
+          return processRawResult(resultSet);
+        }
         if (resultType.isAnnotationPresent(Entity.class)) {
           return processEntityType(resultType, resultSet);
         }
         if (TypeUtils.isPrimitiveOrWrapper(resultType)) {
           return processPrimitiveType(resultSet);
         }
-        throw new RuntimeException();
+        throw new RepositoryException("Could not process query: " + query);
       } catch (SQLException e) {
-        throw new RuntimeException(e);
+        throw new DataSourceException(e);
       }
     }, args);
   }
@@ -79,13 +87,14 @@ public class DefaultRepository {
       this.entityType = entityType;
       return;
     }
-    throw new RuntimeException();
+    throw new RepositoryException("Entity type is already set");
   }
 
   private String processQueryString(String query) {
     return query.trim().replaceAll(System.lineSeparator(), "");
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
   private Object getParameterValue(ResultSet resultSet, ImmutablePair<String, Class<?>> parameterData) {
     try {
       if (parameterData.getLeft() == null) {
@@ -94,10 +103,29 @@ public class DefaultRepository {
       if (parameterData.getRight().equals(UUID.class)) {
         return UUID.fromString(resultSet.getString(parameterData.getLeft()));
       }
+      if (parameterData.getRight().isEnum()) {
+        var value = resultSet.getString(parameterData.getLeft());
+        var enumClass = (Class<? extends Enum>) parameterData.getRight();
+        return Enum.valueOf(enumClass, value);
+      }
       return resultSet.getObject(parameterData.getLeft());
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new DataSourceException(e);
     }
+  }
+
+  private List<Object> processRawResult(ResultSet resultSet) throws SQLException {
+    var result = new ArrayList<>();
+    while (resultSet.next()) {
+      var row = IntStream.range(1, resultSet.getMetaData().getColumnCount() + 1)
+          .mapToObj(index -> {
+            var key = ThrowableOptional.sneaky(() -> resultSet.getMetaData().getColumnName(index));
+            var value = ThrowableOptional.sneaky(() -> resultSet.getObject(index));
+            return ImmutablePair.of(key, value);
+          }).collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
+      result.add(row);
+    }
+    return result;
   }
 
   private List<Object> processEntityType(Class<?> resultType, ResultSet resultSet) throws SQLException {
@@ -110,6 +138,7 @@ public class DefaultRepository {
       var constructorValues = Arrays.stream(resultTypeConstructor.getParameters())
           .map(this::getParameterData)
           .map(parameterData -> getParameterValue(resultSet, parameterData))
+          .filter(Objects::nonNull)
           .toArray();
       result.add(BasicComponentManager.getComponentCreator().create(resultType, constructorValues));
     }

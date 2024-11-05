@@ -1,6 +1,6 @@
-package ru.danilarassokhin.game.service.impl;
+package ru.danilarassokhin.game.sql.service.impl;
 
-import ru.danilarassokhin.game.service.annotation.GameRepository;
+import ru.danilarassokhin.game.sql.annotation.GameRepository;
 import tech.hiddenproject.progressive.injection.BeanScanner;
 
 /**

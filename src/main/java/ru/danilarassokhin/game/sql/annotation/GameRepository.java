@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.service.annotation;
+package ru.danilarassokhin.game.sql.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

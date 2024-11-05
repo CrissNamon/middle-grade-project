@@ -9,8 +9,8 @@ import ru.danilarassokhin.game.config.ApplicationConfig;
 import ru.danilarassokhin.game.security.LoggerHttpFilter;
 import ru.danilarassokhin.game.server.netty.HttpServerInitializer;
 import ru.danilarassokhin.game.server.netty.NettyServer;
-import ru.danilarassokhin.game.service.impl.RepositoryBeanFactory;
-import ru.danilarassokhin.game.service.impl.RepositoryBeanScanner;
+import ru.danilarassokhin.game.sql.service.impl.RepositoryBeanFactory;
+import ru.danilarassokhin.game.sql.service.impl.RepositoryBeanScanner;
 import ru.danilarassokhin.game.util.PropertiesFactory;
 import tech.hiddenproject.progressive.BasicComponentManager;
 
