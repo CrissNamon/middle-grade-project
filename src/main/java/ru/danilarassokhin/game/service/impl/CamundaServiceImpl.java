@@ -28,6 +28,9 @@ import ru.danilarassokhin.game.util.PropertiesFactory;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
+/**
+ * Implementation of {@link CamundaService}.
+ */
 @GameBean
 @Slf4j
 public class CamundaServiceImpl implements CamundaService {
@@ -78,6 +81,11 @@ public class CamundaServiceImpl implements CamundaService {
         .filter(Objects::nonNull)
         .map(this::flowNodeToActionDto)
         .toList();
+  }
+
+  @Override
+  public void doAction(ActionDto actionDto) {
+
   }
 
   private ActionDto flowNodeToActionDto(ImmutablePair<String, String> flowNode) {

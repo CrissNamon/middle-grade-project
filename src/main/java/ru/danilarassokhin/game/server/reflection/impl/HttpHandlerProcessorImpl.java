@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -56,18 +57,19 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
    */
   public ImmutablePair<HttpRequestKey, HttpRequestHandler> methodToRequestHandler(Object controller, Method method) {
     log.debug("Found request mapper: {}", method);
-    var handlerData = createHttpRequestHandlerDataFromMethod(method);
-    HttpRequestHandler handler = createHttpRequestHandlerFromMethod(controller, method, handlerData);
-    return ImmutablePair.of(handlerData.requestKey(), handler);
+    return createHttpRequestHandlerDataFromMethod(method)
+        .map(handlerData -> {
+          HttpRequestHandler handler = createHttpRequestHandlerFromMethod(controller, method, handlerData);
+          return ImmutablePair.of(handlerData.requestKey(), handler);
+        }).orElse(null);
   }
 
-  private HttpRequestHandlerData createHttpRequestHandlerDataFromMethod(Method method) {
+  private Optional<HttpRequestHandlerData> createHttpRequestHandlerDataFromMethod(Method method) {
     return REQUEST_ANNOTATIONS.stream()
         .map(method::getAnnotation)
         .filter(Objects::nonNull)
         .findFirst()
-        .map(this::annotationToHttpRequestHandlerData)
-        .orElseThrow();
+        .map(this::annotationToHttpRequestHandlerData);
   }
 
   private HttpRequestHandlerData annotationToHttpRequestHandlerData(Annotation annotation) {

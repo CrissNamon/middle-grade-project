@@ -59,7 +59,7 @@ public class ReflectiveDispatcherControllerTest {
       Mockito.when(mockRequest.method()).thenReturn(HttpMethod.GET);
       Mockito.when(mockRequest.uri()).thenReturn("/ping");
       Mockito.when(mockHeaders.get(HttpHeaderNames.CONTENT_TYPE)).thenReturn(HttpMediaType.APPLICATION_JSON);
-      dispatcherController.addMapping(handler.first(), handler.second());
+      dispatcherController.addMapping(handler.getLeft(), handler.getRight());
 
       var actual = dispatcherController.handleRequest(mockRequest);
       Assertions.assertEquals("\"pong\"", actual.body());

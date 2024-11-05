@@ -1,7 +1,6 @@
 package ru.danilarassokhin.game.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.danilarassokhin.game.TestController;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.impl.ReflectiveDispatcherController;
 import ru.danilarassokhin.game.server.reflection.HttpBodyMapper;
@@ -30,8 +29,8 @@ public class HttpConfig {
   }
 
   @GameBean(order = 3)
-  public DispatcherController dispatcherController(HttpHandlerProcessor httpHandlerProcessor, TestController testController) {
-    return new ReflectiveDispatcherController(httpHandlerProcessor, testController);
+  public DispatcherController dispatcherController(HttpHandlerProcessor httpHandlerProcessor) {
+    return new ReflectiveDispatcherController(httpHandlerProcessor);
   }
 
 }

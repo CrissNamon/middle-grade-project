@@ -3,6 +3,7 @@ package ru.danilarassokhin.game.server.impl;
 import static ru.danilarassokhin.game.server.model.HttpMediaType.TEXT_PLAIN;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,6 +41,7 @@ public class ReflectiveDispatcherController implements DispatcherController {
         .flatMap(controllerToMethods -> Arrays.stream(controllerToMethods.getRight())
             .map(method -> httpHandlerProcessor.methodToRequestHandler(controllerToMethods.getLeft(),
                                                                        method)))
+        .filter(Objects::nonNull)
         .forEach(httpRequestMapping ->
                      addMapping(httpRequestMapping.getLeft(), httpRequestMapping.getRight()));
   }

@@ -9,16 +9,28 @@ import ru.danilarassokhin.game.config.ApplicationConfig;
 import ru.danilarassokhin.game.security.LoggerHttpFilter;
 import ru.danilarassokhin.game.server.netty.HttpServerInitializer;
 import ru.danilarassokhin.game.server.netty.NettyServer;
+import ru.danilarassokhin.game.service.impl.RepositoryBeanFactory;
+import ru.danilarassokhin.game.service.impl.RepositoryBeanScanner;
 import ru.danilarassokhin.game.util.PropertiesFactory;
 import tech.hiddenproject.progressive.BasicComponentManager;
 
+/**
+ * Starter for game server.
+ */
 public class GameServer {
 
   private static final int DEFAULT_PORT = 8080;
 
+  /**
+   * Starts game server.
+   * @param configurations Configuration classes for {@link tech.hiddenproject.progressive.injection.DIContainer}.
+   */
   public static void start(Class<?>... configurations) {
     var diContainer = BasicComponentManager.getDiContainer();
+    diContainer.addBeanScanner(new RepositoryBeanScanner());
+    diContainer.addBeanFactory(new RepositoryBeanFactory(diContainer));
     Arrays.stream(configurations).forEach(diContainer::loadConfiguration);
+
     var propertiesFactory = diContainer.getBean(PropertiesFactory.class);
     var dispatcherController = diContainer.getBean(DispatcherController.class);
     var loggingHandler = new LoggingHandler(LogLevel.DEBUG);

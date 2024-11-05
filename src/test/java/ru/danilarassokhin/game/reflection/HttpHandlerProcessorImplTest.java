@@ -29,7 +29,7 @@ public class HttpHandlerProcessorImplTest {
       var expectedKey = new HttpRequestKey(HttpMethod.GET, HttpMediaType.APPLICATION_JSON, "/ping");
 
       var actual = httpHandlerProcessor.methodToRequestHandler(testController, method);
-      Assertions.assertEquals(expectedKey, actual.first());
+      Assertions.assertEquals(expectedKey, actual.getLeft());
     });
   }
 
@@ -41,7 +41,7 @@ public class HttpHandlerProcessorImplTest {
       var requestMock = Mockito.mock(FullHttpRequest.class);
 
       var actual = httpHandlerProcessor.methodToRequestHandler(testController, method);
-      var response = actual.second().handle(requestMock);
+      var response = actual.getRight().handle(requestMock);
       Assertions.assertEquals("\"pong\"", response.body());
     });
   }
