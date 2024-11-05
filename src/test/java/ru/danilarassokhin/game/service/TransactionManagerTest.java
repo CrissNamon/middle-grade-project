@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,36 +31,46 @@ public class TransactionManagerTest {
 
   @Test
   public void itShouldCreateValidInsertQuery() throws SQLException {
-    var table = "test_table";
-    var values = Map.of("column1", "value1", "column2", 2);
+    var query = "SELECT * FROM test_table WHERE column1 = ? AND column2 = ?;";
+    var values = new Object[] {"value1", 1};
+    var expectedResult = "result";
     var statement = Mockito.mock(PreparedStatement.class);
     var resultSet = Mockito.mock(ResultSet.class);
     var sqlCaptor = ArgumentCaptor.forClass(String.class);
+
     Mockito.when(dataSource.getConnection()).thenReturn(connection);
     Mockito.when(connection.prepareStatement(Mockito.any())).thenReturn(statement);
     Mockito.when(statement.executeQuery()).thenReturn(resultSet);
 
-    transactionManager.insertQuery(table, values);
+    var actual = transactionManager.executeQuery(query, rs -> expectedResult, values);
     Mockito.verify(connection, Mockito.times(1)).prepareStatement(sqlCaptor.capture());
-    Assertions.assertEquals("INSERT INTO " + table + "(column1,column2) VALUES(?,?);", sqlCaptor.getValue());
-    Mockito.verify(statement, Mockito.times(1)).setString(0, (String) values.get("column1"));
-    Mockito.verify(statement, Mockito.times(1)).setInt(1, (Integer) values.get("column2"));
+    Mockito.verify(statement, Mockito.times(1)).setString(1, (String) values[0]);
+    Mockito.verify(statement, Mockito.times(1)).setInt(2, (Integer) values[1]);
+    Assertions.assertEquals(query, sqlCaptor.getValue());
+    Assertions.assertEquals(expectedResult, actual);
   }
   @Test
   public void itShouldCreateValidUpdateQuery() throws SQLException {
-    var table = "test_table";
-    var values = Map.of("column1", "value1", "column2", 2);
+    var query = "UPDATE test_table SET column1 = ? WHERE column2 = ?;";
+    var values = new Object[] {"value1", 1};
+    var expectedResult = 1;
+    var isolationLevel = Connection.TRANSACTION_READ_COMMITTED;
     var statement = Mockito.mock(PreparedStatement.class);
     var sqlCaptor = ArgumentCaptor.forClass(String.class);
+    var isolationLevelCaptor = ArgumentCaptor.forClass(Integer.class);
+
     Mockito.when(dataSource.getConnection()).thenReturn(connection);
     Mockito.when(connection.prepareStatement(Mockito.any())).thenReturn(statement);
-    Mockito.when(statement.executeUpdate()).thenReturn(0);
+    Mockito.when(statement.executeUpdate()).thenReturn(expectedResult);
 
-    transactionManager.updateQuery(Connection.TRANSACTION_REPEATABLE_READ, table, values);
+    var actual = transactionManager.executeUpdate(isolationLevel, query, values);
     Mockito.verify(connection, Mockito.times(1)).prepareStatement(sqlCaptor.capture());
-    Assertions.assertEquals("UPDATE " + table + " SET column1=?,column2=?;", sqlCaptor.getValue());
-    Mockito.verify(statement, Mockito.times(1)).setString(0, (String) values.get("column1"));
-    Mockito.verify(statement, Mockito.times(1)).setInt(1, (Integer) values.get("column2"));
+    Mockito.verify(statement, Mockito.times(1)).setString(1, (String) values[0]);
+    Mockito.verify(statement, Mockito.times(1)).setInt(2, (Integer) values[1]);
+    Mockito.verify(connection, Mockito.times(1)).setTransactionIsolation(isolationLevelCaptor.capture());
+    Assertions.assertEquals(query, sqlCaptor.getValue());
+    Assertions.assertEquals(expectedResult, actual);
+    Assertions.assertEquals(isolationLevel, isolationLevelCaptor.getValue());
   }
 
 }
