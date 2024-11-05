@@ -11,8 +11,6 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 public class ApplicationConfig {
 
   public static final String SERVER_PORT_PROPERTY = "server.port";
-  public static final String CAMUNDA_PROCESS_ID_PROPERTY = "app.camunda.process-id";
-  public static final String DEFAULT_PROPERTY_DELIMITER = ";";
 
   @GameBean
   public PropertiesFactory propertiesFactory() {
