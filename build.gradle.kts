@@ -29,14 +29,6 @@ dependencies {
     implementation("tech.hiddenproject:aide-all:1.3")
     implementation("org.slf4j:slf4j-reload4j:2.0.16")
     implementation("org.apache.commons:commons-lang3:3.17.0")
-    //Database
-    implementation("com.zaxxer:HikariCP:6.0.0")
-    implementation("org.postgresql:postgresql:42.7.4")
-    implementation("org.flywaydb:flyway-core:10.20.1")
-    implementation("org.flywaydb:flyway-database-postgresql:10.20.1")
-    //MapStruct
-    implementation("org.mapstruct:mapstruct:1.6.2")
-    annotationProcessor("org.mapstruct:mapstruct-processor:1.6.2")
 
     //Test
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
