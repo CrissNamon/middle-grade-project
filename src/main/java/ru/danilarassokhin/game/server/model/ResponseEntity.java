@@ -8,14 +8,18 @@ import io.netty.handler.codec.http.HttpResponseStatus;
  * @param status {@link HttpResponseStatus}
  * @param body Response body
  */
-public record ResponseEntity(HttpResponseStatus status, String body) {
+public record ResponseEntity(HttpResponseStatus status, Object body) {
 
-  public static ResponseEntity ok(String body) {
+  public static ResponseEntity ok(Object body) {
     return new ResponseEntity(HttpResponseStatus.OK, body);
   }
 
   public static ResponseEntity ok() {
     return ok(null);
+  }
+
+  public static ResponseEntity notFound() {
+    return new ResponseEntity(HttpResponseStatus.NOT_FOUND, null);
   }
 
 }

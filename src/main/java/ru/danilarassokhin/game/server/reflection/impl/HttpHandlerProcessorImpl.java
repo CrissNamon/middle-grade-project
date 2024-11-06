@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
+import ru.danilarassokhin.game.server.model.RequestEntity;
 import ru.danilarassokhin.game.util.HttpUtils;
 import ru.danilarassokhin.game.server.annotation.GetRequest;
 import ru.danilarassokhin.game.server.annotation.PostRequest;
@@ -92,19 +93,19 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
     }
   }
 
-  private Object getMethodParameterFromHttpRequest(Method method, FullHttpRequest httpRequest) {
+  private Object getMethodParameterFromHttpRequest(Method method, RequestEntity httpRequest) {
     var methodParameters = method.getParameterTypes();
     if (methodParameters.length != 1) {
       throw new HttpServerException("Wrong method parameters count: " + methodParameters.length);
     }
     try {
       var methodParameter = methodParameters[0];
-      if (HttpRequest.class.isAssignableFrom(methodParameter)) {
+      if (RequestEntity.class.isAssignableFrom(methodParameter)) {
         return httpRequest;
       } else {
         return httpBodyMapper.stringToObject(
-            HttpUtils.getHeaderValue(httpRequest, HttpHeaderNames.CONTENT_TYPE).orElse(TEXT_PLAIN),
-            httpRequest.content().toString(StandardCharsets.UTF_8),
+            HttpUtils.getHeaderValue(httpRequest.request(), HttpHeaderNames.CONTENT_TYPE).orElse(TEXT_PLAIN),
+            httpRequest.request().content().toString(StandardCharsets.UTF_8),
             methodParameter
         );
       }
@@ -115,8 +116,8 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
 
   private HttpRequestHandler createHttpRequestHandlerFromMethod(Object controller, Method method, HttpRequestHandlerData handlerData) {
     var wrapper = LambdaWrapperHolder.EMPTY.wrap(method, HttpRequestMapperWrapper.class);
-    return httpRequest -> {
-      var methodParameterValue = getMethodParameterFromHttpRequest(method, httpRequest);
+    return requestEntity -> {
+      var methodParameterValue = getMethodParameterFromHttpRequest(method, requestEntity);
       if (method.getReturnType().equals(void.class)) {
         wrapper.getWrapper().voidRequest(controller, methodParameterValue);
         return responseEntityToHttpResponse(handlerData, ResponseEntity.ok());

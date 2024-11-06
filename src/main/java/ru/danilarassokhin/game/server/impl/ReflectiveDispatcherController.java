@@ -2,6 +2,7 @@ package ru.danilarassokhin.game.server.impl;
 
 import static ru.danilarassokhin.game.server.model.HttpMediaType.TEXT_PLAIN;
 
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +15,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
 import ru.danilarassokhin.game.exception.HttpServerException;
+import ru.danilarassokhin.game.server.model.RequestEntity;
 import ru.danilarassokhin.game.util.HttpUtils;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
@@ -38,6 +40,7 @@ public class ReflectiveDispatcherController implements DispatcherController {
     Arrays.stream(controllers)
         .map(controller -> ImmutablePair.of(controller, controller.getClass().getDeclaredMethods()))
         .flatMap(controllerToMethods -> Arrays.stream(controllerToMethods.getRight())
+            .filter(method -> Modifier.isPublic(method.getModifiers()))
             .map(method -> httpHandlerProcessor.methodToRequestHandler(controllerToMethods.getLeft(),
                                                                        method)))
         .forEach(httpRequestMapping ->
@@ -46,21 +49,27 @@ public class ReflectiveDispatcherController implements DispatcherController {
 
   @Override
   public void addMapping(HttpRequestKey key, HttpRequestHandler mapping) {
-    findByKey(key).ifPresent(handler -> {
+    Optional.ofNullable(availableRequestMappings.get(key)).ifPresent(handler -> {
       throw new HttpServerException("Duplicate http request handler! Already contains: " + key);
     });
     availableRequestMappings.put(key, mapping);
   }
 
   @Override
-  public Optional<HttpRequestHandler> findByKey(HttpRequestKey key) {
-    return Optional.ofNullable(availableRequestMappings.get(key));
+  public Optional<ImmutablePair<HttpRequestKey, HttpRequestHandler>> findByKey(HttpRequestKey key) {
+    return availableRequestMappings.keySet().stream()
+        .filter(mappingKey -> mappingKey.matches(key))
+        .findFirst()
+        .map(mappingKey -> ImmutablePair.of(mappingKey, availableRequestMappings.get(mappingKey)));
   }
 
   @Override
   public HttpResponseEntity handleRequest(FullHttpRequest httpRequest) {
     var optionalRequestHandler = findByKey(httpRequestToKey(httpRequest));
-    return optionalRequestHandler.map(httpRequestHandler -> httpRequestHandler.handle(httpRequest))
+    return optionalRequestHandler.map(httpRequestHandlerData -> {
+          var pathParameters = httpRequestHandlerData.getLeft().extractParametersNamed(httpRequest.uri());
+          return httpRequestHandlerData.getRight().handle(new RequestEntity(httpRequest, pathParameters));
+        })
         .orElseGet(() -> createMethodNotAllowedResponse(httpRequest));
   }
 
