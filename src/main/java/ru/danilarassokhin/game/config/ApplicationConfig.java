@@ -7,7 +7,6 @@ import tech.hiddenproject.progressive.annotation.Configuration;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
 @Configuration
-@ComponentScan({"ru.danilarassokhin.game", "ru.danilarassokhin.game.service.impl", "ru.danilarassokhin.game.controller"})
 public class ApplicationConfig {
 
   public static final String SERVER_PORT_PROPERTY = "server.port";

@@ -56,6 +56,8 @@ public interface TransactionTemplate {
    */
   int executeUpdate(String query, Object... args);
 
+  void useSchema(String schemaName);
+
   /**
    * Returns {@link Connection} associate with this transaction.
    * @return {@link Connection}
