@@ -1,7 +1,6 @@
 package ru.danilarassokhin.game.util;
 
 import java.util.Optional;
-import java.util.Properties;
 
 /**
  * Provides storage for application properties.
@@ -23,9 +22,4 @@ public interface PropertiesFactory {
    * @return Optional property value
    */
   Optional<String> getAsString(String name);
-
-  /**
-   * @return {@link Properties}
-   */
-  Properties getAll();
 }

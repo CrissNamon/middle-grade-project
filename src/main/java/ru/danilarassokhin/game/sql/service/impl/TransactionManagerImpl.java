@@ -12,11 +12,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.exception.DataIntegrityException;
 import ru.danilarassokhin.game.exception.DataSourceException;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
 import ru.danilarassokhin.game.sql.service.TransactionTemplate;
-import ru.danilarassokhin.game.util.PropertiesFactory;
 import ru.danilarassokhin.game.util.SneakyConsumer;
 import ru.danilarassokhin.game.util.SneakyFunction;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
@@ -24,16 +24,10 @@ import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
 @GameBean
+@RequiredArgsConstructor(onConstructor_ = {@Autofill})
 public class TransactionManagerImpl implements TransactionManager {
 
   private final DataSource dataSource;
-  private final String defaultSchemaName;
-
-  @Autofill
-  public TransactionManagerImpl(DataSource dataSource, PropertiesFactory propertiesFactory) {
-    this.dataSource = dataSource;
-    this.defaultSchemaName = propertiesFactory.getAsString("datasource.defaultSchema").orElse(null);
-  }
 
   @Override
   public <T> T startTransaction(SneakyFunction<Connection, T> body) {
@@ -97,9 +91,7 @@ public class TransactionManagerImpl implements TransactionManager {
   public <T> T fetchInTransaction(int isolationLevel, SneakyFunction<TransactionTemplate, T> body) {
     return startTransaction(connection -> {
       connection.setTransactionIsolation(isolationLevel);
-      var transactionTemplate = new TransactionTemplateImpl(connection, new DefaultRepository(this));
-      transactionTemplate.useSchema(defaultSchemaName);
-      return body.apply(transactionTemplate);
+      return body.apply(new TransactionTemplateImpl(connection, new DefaultRepository(this)));
     });
   }
 

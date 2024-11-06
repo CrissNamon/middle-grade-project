@@ -3,7 +3,6 @@ package ru.danilarassokhin.game.server;
 import java.util.Optional;
 
 import io.netty.handler.codec.http.FullHttpRequest;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import ru.danilarassokhin.game.server.model.HttpRequestKey;
 import ru.danilarassokhin.game.server.model.HttpResponseEntity;
 
@@ -26,7 +25,7 @@ public interface DispatcherController {
    * @param key {@link HttpRequestKey}
    * @return Optional {@link HttpRequestHandler}
    */
-  Optional<ImmutablePair<HttpRequestKey, HttpRequestHandler>> findByKey(HttpRequestKey key);
+  Optional<HttpRequestHandler> findByKey(HttpRequestKey key);
 
   /**
    * Dispatches request to suitable handler.

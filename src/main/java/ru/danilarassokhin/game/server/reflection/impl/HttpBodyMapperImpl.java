@@ -1,7 +1,5 @@
 package ru.danilarassokhin.game.server.reflection.impl;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.exception.HttpServerException;
@@ -23,9 +21,6 @@ public class HttpBodyMapperImpl implements HttpBodyMapper {
    * @return Serialized object
    */
   public String objectToString(String contentType, Object body) {
-    if (Objects.isNull(body)) {
-      return null;
-    }
     try {
       switch (contentType) {
         case HttpMediaType.APPLICATION_JSON -> {
