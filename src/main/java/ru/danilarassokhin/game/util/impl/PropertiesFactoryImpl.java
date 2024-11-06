@@ -36,4 +36,9 @@ public class PropertiesFactoryImpl implements PropertiesFactory {
   public Optional<String> getAsString(String name) {
     return Optional.ofNullable(applicationProperties.getProperty(name));
   }
+
+  @Override
+  public Properties getAll() {
+    return applicationProperties;
+  }
 }
