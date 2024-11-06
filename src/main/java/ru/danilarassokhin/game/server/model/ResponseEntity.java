@@ -22,4 +22,12 @@ public record ResponseEntity(HttpResponseStatus status, Object body) {
     return new ResponseEntity(HttpResponseStatus.NOT_FOUND, null);
   }
 
+  public static ResponseEntity internalError() {
+    return new ResponseEntity(HttpResponseStatus.INTERNAL_SERVER_ERROR, null);
+  }
+
+  public static ResponseEntity badRequest(Object body) {
+    return new ResponseEntity(HttpResponseStatus.BAD_REQUEST, body);
+  }
+
 }

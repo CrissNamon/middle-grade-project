@@ -9,15 +9,17 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import ru.danilarassokhin.game.server.HttpRequestHandler;
 import ru.danilarassokhin.game.server.model.RequestEntity;
+import ru.danilarassokhin.game.service.impl.HttpExceptionHandler;
 import ru.danilarassokhin.game.util.HttpUtils;
 import ru.danilarassokhin.game.server.annotation.GetRequest;
 import ru.danilarassokhin.game.server.annotation.PostRequest;
@@ -48,6 +50,8 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
   }};
 
   private final HttpBodyMapper httpBodyMapper;
+  private final Validator validator;
+  private final HttpExceptionHandler httpExceptionHandler;
 
   /**
    * Converts methods to {@link HttpRequestKey} and {@link HttpRequestHandler} pair.
@@ -117,15 +121,27 @@ public class HttpHandlerProcessorImpl implements HttpHandlerProcessor {
   private HttpRequestHandler createHttpRequestHandlerFromMethod(Object controller, Method method, HttpRequestHandlerData handlerData) {
     var wrapper = LambdaWrapperHolder.EMPTY.wrap(method, HttpRequestMapperWrapper.class);
     return requestEntity -> {
-      var methodParameterValue = getMethodParameterFromHttpRequest(method, requestEntity);
-      if (method.getReturnType().equals(void.class)) {
-        wrapper.getWrapper().voidRequest(controller, methodParameterValue);
-        return responseEntityToHttpResponse(handlerData, ResponseEntity.ok());
-      } else {
-        ResponseEntity result = wrapper.getWrapper().request(controller, methodParameterValue);
-        return responseEntityToHttpResponse(handlerData, result);
+      try {
+        var methodParameterValue = getMethodParameterFromHttpRequest(method, requestEntity);
+        validate(methodParameterValue);
+        if (method.getReturnType().equals(void.class)) {
+          wrapper.getWrapper().voidRequest(controller, methodParameterValue);
+          return responseEntityToHttpResponse(handlerData, ResponseEntity.ok());
+        } else {
+          ResponseEntity result = wrapper.getWrapper().request(controller, methodParameterValue);
+          return responseEntityToHttpResponse(handlerData, result);
+        }
+      } catch (RuntimeException e) {
+        return responseEntityToHttpResponse(handlerData, httpExceptionHandler.handle(e));
       }
     };
+  }
+
+  private void validate(Object object) {
+    Set<ConstraintViolation<Object>> violations = validator.validate(object);
+    if (!violations.isEmpty()) {
+      throw new ConstraintViolationException(violations);
+    }
   }
 
   private HttpResponseEntity responseEntityToHttpResponse(HttpRequestHandlerData handlerData, ResponseEntity responseEntity) {
