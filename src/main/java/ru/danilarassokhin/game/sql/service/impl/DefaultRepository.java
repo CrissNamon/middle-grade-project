@@ -23,7 +23,7 @@ import ru.danilarassokhin.game.sql.annotation.Entity;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
 import ru.danilarassokhin.game.util.TypeUtils;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
-import tech.hiddenproject.progressive.BasicComponentManager;
+import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 import tech.hiddenproject.progressive.injection.GameBeanCreationPolicy;
@@ -133,16 +133,17 @@ public class DefaultRepository {
           .map(parameterData -> getParameterValue(resultSet, parameterData))
           .filter(Objects::nonNull)
           .toArray();
-      result.add(BasicComponentManager.getComponentCreator().create(resultType, constructorValues));
+      result.add(LambdaWrapperHolder.DEFAULT.wrapSafe(resultTypeConstructor).invokeStatic(constructorValues));
     }
     return result;
   }
 
   private List<Object> processPrimitiveType(ResultSet resultSet) throws SQLException {
+    var result = new ArrayList<>();
     while (resultSet.next()) {
-      return List.of(resultSet.getObject(1));
+      result.add(resultSet.getObject(1));
     }
-    return null;
+    return result;
   }
 
   private ImmutablePair<String, Class<?>> getParameterData(Parameter parameter) {

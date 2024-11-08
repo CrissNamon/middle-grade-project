@@ -26,7 +26,7 @@ public class TypeUtils {
   }
 
   public static boolean isPrimitiveOrWrapper(Class<?> type) {
-    return isInt(type) || isLong(type) || isBoolean(type) || isDouble(type);
+    return isInt(type) || isLong(type) || isBoolean(type) || isDouble(type) || isString(type);
   }
 
   @SuppressWarnings("unchecked")

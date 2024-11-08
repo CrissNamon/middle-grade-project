@@ -15,7 +15,7 @@ import java.util.UUID;
 import ru.danilarassokhin.game.exception.DataIntegrityException;
 import ru.danilarassokhin.game.exception.DataSourceException;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
-import ru.danilarassokhin.game.sql.service.TransactionTemplate;
+import ru.danilarassokhin.game.sql.service.TransactionContext;
 import ru.danilarassokhin.game.util.PropertiesFactory;
 import ru.danilarassokhin.game.util.SneakyConsumer;
 import ru.danilarassokhin.game.util.SneakyFunction;
@@ -26,13 +26,15 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 @GameBean
 public class TransactionManagerImpl implements TransactionManager {
 
+  private static final String DATASOURCE_DEFAULT_SCHEME_PROPERTY = "datasource.defaultSchema";
+
   private final DataSource dataSource;
   private final String defaultSchemaName;
 
   @Autofill
   public TransactionManagerImpl(DataSource dataSource, PropertiesFactory propertiesFactory) {
     this.dataSource = dataSource;
-    this.defaultSchemaName = propertiesFactory.getAsString("datasource.defaultSchema").orElse(null);
+    this.defaultSchemaName = propertiesFactory.getAsString(DATASOURCE_DEFAULT_SCHEME_PROPERTY).orElse(null);
   }
 
   @Override
@@ -47,7 +49,9 @@ public class TransactionManagerImpl implements TransactionManager {
     } catch (DataSourceException | DataIntegrityException e) {
       rollbackSafely(connection);
       throw e;
-    } catch (Throwable e) {
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
       throw new DataSourceException(e);
     } finally {
       closeSafely(connection);
@@ -73,7 +77,7 @@ public class TransactionManagerImpl implements TransactionManager {
   }
 
   @Override
-  public void doInTransaction(SneakyConsumer<TransactionTemplate> body) {
+  public void doInTransaction(SneakyConsumer<TransactionContext> body) {
     fetchInTransaction(transactionTemplate -> {
       body.accept(transactionTemplate);
       return null;
@@ -81,7 +85,7 @@ public class TransactionManagerImpl implements TransactionManager {
   }
 
   @Override
-  public void doInTransaction(int isolationLevel, SneakyConsumer<TransactionTemplate> body) {
+  public void doInTransaction(int isolationLevel, SneakyConsumer<TransactionContext> body) {
     fetchInTransaction(isolationLevel, transactionTemplate -> {
       body.accept(transactionTemplate);
       return null;
@@ -89,15 +93,15 @@ public class TransactionManagerImpl implements TransactionManager {
   }
 
   @Override
-  public <T> T fetchInTransaction(SneakyFunction<TransactionTemplate, T> body) {
+  public <T> T fetchInTransaction(SneakyFunction<TransactionContext, T> body) {
     return fetchInTransaction(Connection.TRANSACTION_READ_COMMITTED, body);
   }
 
   @Override
-  public <T> T fetchInTransaction(int isolationLevel, SneakyFunction<TransactionTemplate, T> body) {
+  public <T> T fetchInTransaction(int isolationLevel, SneakyFunction<TransactionContext, T> body) {
     return startTransaction(connection -> {
       connection.setTransactionIsolation(isolationLevel);
-      var transactionTemplate = new TransactionTemplateImpl(connection, new DefaultRepository(this));
+      var transactionTemplate = new TransactionContextImpl(connection, new DefaultRepository(this));
       transactionTemplate.useSchema(defaultSchemaName);
       return body.apply(transactionTemplate);
     });
@@ -128,13 +132,13 @@ public class TransactionManagerImpl implements TransactionManager {
 
   private void rollbackSafely(Connection connection) {
     if (connection != null) {
-      ThrowableOptional.sneaky(() -> connection.rollback());
+      ThrowableOptional.sneaky(() -> connection.rollback(), DataSourceException::new);
     }
   }
 
   private void closeSafely(Connection connection) {
     if (connection != null) {
-      ThrowableOptional.sneaky(connection::close);
+      ThrowableOptional.sneaky(connection::close, DataSourceException::new);
     }
   }
 }

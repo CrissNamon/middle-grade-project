@@ -7,6 +7,6 @@ package ru.danilarassokhin.game.util;
  */
 public interface SneakyFunction<I, R> {
 
-  R apply(I input) throws Throwable;
+  R apply(I input) throws Exception;
 
 }

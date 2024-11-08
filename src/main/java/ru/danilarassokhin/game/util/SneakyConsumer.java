@@ -6,6 +6,6 @@ package ru.danilarassokhin.game.util;
  */
 public interface SneakyConsumer<T> {
 
-  void accept(T argument) throws Throwable;
+  void accept(T argument) throws Exception;
 
 }
