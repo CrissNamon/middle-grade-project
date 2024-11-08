@@ -18,8 +18,6 @@ public class PlayerController {
 
   @PostRequest("/api/player")
   public ResponseEntity createPlayer(CreatePlayerRequest request) {
-    return ResponseEntity.ok(
-        playerService.createPlayer(
-            playerMapper.createPlayerRequestToDto(request)));
+    return ResponseEntity.ok(playerService.createPlayer(playerMapper.createPlayerRequestToDto(request)));
   }
 }

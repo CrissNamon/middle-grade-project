@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import ru.danilarassokhin.game.sql.service.QueryContext;
 import ru.danilarassokhin.game.sql.service.TransactionContext;
 import ru.danilarassokhin.game.util.SneakyFunction;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
@@ -18,7 +19,7 @@ public class TransactionContextImpl implements TransactionContext {
   private String schemaName;
 
   @Override
-  public QueryContextImpl query(String query, Object... args) {
+  public QueryContext query(String query, Object... args) {
     return new QueryContextImpl(connection, defaultRepository, query, args);
   }
 

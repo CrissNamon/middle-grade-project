@@ -6,6 +6,6 @@ import ru.danilarassokhin.game.sql.service.TransactionContext;
 
 public interface PlayerRepository extends JdbcRepository<PlayerEntity, Integer> {
 
-  boolean existsByName(TransactionContext trx, String name);
+  boolean existsByName(TransactionContext ctx, String name);
 
 }

@@ -23,22 +23,22 @@ public class PlayerRepositoryImpl implements PlayerRepository {
       String.format("SELECT EXISTS(SELECT 1 FROM %s WHERE name = ?);", PlayerEntity.TABLE_NAME);
 
   @Override
-  public Integer save(TransactionContext trx, PlayerEntity entity) {
-    return trx.query(SAVE_QUERY, entity.name()).fetchOne(Integer.class);
+  public Integer save(TransactionContext ctx, PlayerEntity entity) {
+    return ctx.query(SAVE_QUERY, entity.name()).fetchOne(Integer.class);
   }
 
   @Override
-  public Optional<PlayerEntity> findById(TransactionContext trx, Integer id) {
-    return Optional.ofNullable(trx.query(FIND_BY_ID_QUERY, id).fetchOne(PlayerEntity.class));
+  public Optional<PlayerEntity> findById(TransactionContext ctx, Integer id) {
+    return Optional.ofNullable(ctx.query(FIND_BY_ID_QUERY, id).fetchOne(PlayerEntity.class));
   }
 
   @Override
-  public boolean existsById(TransactionContext trx, Integer id) {
-    return trx.query(EXISTS_BY_ID_QUERY, id).fetchOne(Boolean.class);
+  public boolean existsById(TransactionContext ctx, Integer id) {
+    return ctx.query(EXISTS_BY_ID_QUERY, id).fetchOne(Boolean.class);
   }
 
   @Override
-  public boolean existsByName(TransactionContext trx, String name) {
-    return trx.query(EXISTS_BY_NAME_QUERY, name).fetchOne(Boolean.class);
+  public boolean existsByName(TransactionContext ctx, String name) {
+    return ctx.query(EXISTS_BY_NAME_QUERY, name).fetchOne(Boolean.class);
   }
 }

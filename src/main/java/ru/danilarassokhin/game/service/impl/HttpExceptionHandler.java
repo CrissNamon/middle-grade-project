@@ -20,10 +20,8 @@ public class HttpExceptionHandler {
   }
 
   public ResponseEntity handle(RuntimeException exception) {
-    return handlers.getOrDefault(exception.getClass(), e -> {
-          log.error("Unhandled exception", e);
-          return ResponseEntity.internalError();
-        }).apply(exception);
+    log.error("Error", exception);
+    return handlers.getOrDefault(exception.getClass(), e -> ResponseEntity.internalError()).apply(exception);
   }
 
 }
