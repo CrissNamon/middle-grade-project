@@ -12,13 +12,22 @@ CREATE TABLE IF NOT EXISTS player(
 );
 
 CREATE TABLE IF NOT EXISTS dungeon(
-  level serial primary key,
-  code text not null
+  id serial primary key,
+  level integer,
+  code text not null,
+  constraint ux_dungeon_level_code unique(level, code)
 );
 
 CREATE TABLE IF NOT EXISTS dungeon_log(
   id serial primary key,
+  dungeon_id integer references dungeon(id),
+  log_id integer references damage_log(id),
+  constraint ux_dungeon_log_id unique(dungeon_id, log_id)
+);
+
+CREATE TABLE IF NOT EXISTS damage_log(
+  id serial primary key,
   player_id integer not null references player(id),
   dateTime timestamp not null default (now() at time zone 'utc'),
-  damage integer not null
+  damage integer not null,
 );
