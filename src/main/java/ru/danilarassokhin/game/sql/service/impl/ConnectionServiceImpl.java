@@ -18,17 +18,19 @@ public class ConnectionServiceImpl implements ConnectionService {
 
   @Override
   public int executeUpdate(Connection connection, String query, Object... args) throws SQLException {
-    var statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-    fillStatement(statement, Arrays.stream(args).toList());
-    return statement.executeUpdate();
+    try(var statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+      fillStatement(statement, Arrays.stream(args).toList());
+      return statement.executeUpdate();
+    }
   }
 
   @Override
   public <T> T executeQuery(Connection connection, String query, QueryFunction<ResultSet, T> processor, Object... args)
       throws SQLException {
-    var statement = connection.prepareStatement(query);
-    fillStatement(statement, Arrays.stream(args).toList());
-    return processor.apply(statement.executeQuery());
+    try(var statement = connection.prepareStatement(query)) {
+      fillStatement(statement, Arrays.stream(args).toList());
+      return processor.apply(statement.executeQuery());
+    }
   }
 
   private void fillStatement(PreparedStatement statement, Collection<?> values) throws SQLException {

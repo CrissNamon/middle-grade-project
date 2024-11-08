@@ -2,7 +2,9 @@ package ru.danilarassokhin.game.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Validator;
+import ru.danilarassokhin.game.controller.DungeonController;
 import ru.danilarassokhin.game.controller.GlobalExceptionHandler;
+import ru.danilarassokhin.game.controller.PlayerController;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.impl.ReflectiveDispatcherController;
 import ru.danilarassokhin.game.server.reflection.HttpBodyMapper;
@@ -32,8 +34,13 @@ public class HttpConfig {
   }
 
   @GameBean(order = 3)
-  public DispatcherController dispatcherController(HttpHandlerProcessor httpHandlerProcessor, GlobalExceptionHandler globalExceptionHandler) {
-    return new ReflectiveDispatcherController(httpHandlerProcessor, globalExceptionHandler);
+  public DispatcherController dispatcherController(
+      HttpHandlerProcessor httpHandlerProcessor,
+      GlobalExceptionHandler globalExceptionHandler,
+      PlayerController playerController,
+      DungeonController dungeonController
+  ) {
+    return new ReflectiveDispatcherController(httpHandlerProcessor, globalExceptionHandler, playerController, dungeonController);
   }
 
 }
