@@ -3,22 +3,14 @@ package ru.danilarassokhin.game.sql.service.impl;
 import javax.sql.DataSource;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.UUID;
 
-import ru.danilarassokhin.game.exception.DataIntegrityException;
 import ru.danilarassokhin.game.exception.DataSourceException;
+import ru.danilarassokhin.game.sql.service.JdbcMapperService;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
 import ru.danilarassokhin.game.sql.service.TransactionContext;
 import ru.danilarassokhin.game.util.PropertiesFactory;
-import ru.danilarassokhin.game.util.SneakyConsumer;
-import ru.danilarassokhin.game.util.SneakyFunction;
+import ru.danilarassokhin.game.sql.service.QueryConsumer;
+import ru.danilarassokhin.game.sql.service.QueryFunction;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
@@ -30,15 +22,17 @@ public class TransactionManagerImpl implements TransactionManager {
 
   private final DataSource dataSource;
   private final String defaultSchemaName;
+  private final JdbcMapperService jdbcMapperService;
 
   @Autofill
-  public TransactionManagerImpl(DataSource dataSource, PropertiesFactory propertiesFactory) {
+  public TransactionManagerImpl(DataSource dataSource, PropertiesFactory propertiesFactory, JdbcMapperService jdbcMapperServiceImpl) {
     this.dataSource = dataSource;
+    this.jdbcMapperService = jdbcMapperServiceImpl;
     this.defaultSchemaName = propertiesFactory.getAsString(DATASOURCE_DEFAULT_SCHEME_PROPERTY).orElse(null);
   }
 
   @Override
-  public <T> T startTransaction(SneakyFunction<Connection, T> body) {
+  public <T> T startTransaction(QueryFunction<Connection, T> body) {
     Connection connection = null;
     try {
       connection = dataSource.getConnection();
@@ -46,10 +40,8 @@ public class TransactionManagerImpl implements TransactionManager {
       var result = body.apply(connection);
       connection.commit();
       return result;
-    } catch (DataSourceException | DataIntegrityException e) {
-      rollbackSafely(connection);
-      throw e;
     } catch (RuntimeException e) {
+      rollbackSafely(connection);
       throw e;
     } catch (Exception e) {
       throw new DataSourceException(e);
@@ -59,25 +51,7 @@ public class TransactionManagerImpl implements TransactionManager {
   }
 
   @Override
-  public int executeUpdate(Connection connection, String query, Object... args) {
-    return ThrowableOptional.sneaky(() -> {
-      var statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-      fillStatement(statement, Arrays.stream(args).toList());
-      return statement.executeUpdate();
-    });
-  }
-
-  @Override
-  public <T> T executeQuery(Connection connection, String query, SneakyFunction<ResultSet, T> processor, Object... args) {
-    return ThrowableOptional.sneaky(() -> {
-      var statement = connection.prepareStatement(query);
-      fillStatement(statement, Arrays.stream(args).toList());
-      return processor.apply(statement.executeQuery());
-    });
-  }
-
-  @Override
-  public void doInTransaction(SneakyConsumer<TransactionContext> body) {
+  public void doInTransaction(QueryConsumer<TransactionContext> body) {
     fetchInTransaction(transactionTemplate -> {
       body.accept(transactionTemplate);
       return null;
@@ -85,7 +59,7 @@ public class TransactionManagerImpl implements TransactionManager {
   }
 
   @Override
-  public void doInTransaction(int isolationLevel, SneakyConsumer<TransactionContext> body) {
+  public void doInTransaction(int isolationLevel, QueryConsumer<TransactionContext> body) {
     fetchInTransaction(isolationLevel, transactionTemplate -> {
       body.accept(transactionTemplate);
       return null;
@@ -93,41 +67,18 @@ public class TransactionManagerImpl implements TransactionManager {
   }
 
   @Override
-  public <T> T fetchInTransaction(SneakyFunction<TransactionContext, T> body) {
+  public <T> T fetchInTransaction(QueryFunction<TransactionContext, T> body) {
     return fetchInTransaction(Connection.TRANSACTION_READ_COMMITTED, body);
   }
 
   @Override
-  public <T> T fetchInTransaction(int isolationLevel, SneakyFunction<TransactionContext, T> body) {
+  public <T> T fetchInTransaction(int isolationLevel, QueryFunction<TransactionContext, T> body) {
     return startTransaction(connection -> {
       connection.setTransactionIsolation(isolationLevel);
-      var transactionTemplate = new TransactionContextImpl(connection, new DefaultRepository(this));
+      var transactionTemplate = new TransactionContextImpl(connection, jdbcMapperService);
       transactionTemplate.useSchema(defaultSchemaName);
       return body.apply(transactionTemplate);
     });
-  }
-
-  private void fillStatement(PreparedStatement statement, Collection<?> values) {
-    var index = 1;
-    try {
-      for (var iterator = values.iterator(); iterator.hasNext(); index++) {
-        var value = iterator.next();
-        switch (value) {
-          case String s -> statement.setString(index, s);
-          case Integer i -> statement.setInt(index, i);
-          case Long l -> statement.setLong(index, l);
-          case Boolean b -> statement.setBoolean(index, b);
-          case Double d -> statement.setDouble(index, d);
-          case UUID uuid -> statement.setObject(index, uuid);
-          case Enum<?> e -> statement.setString(index, e.name());
-          default -> statement.setObject(index, value);
-        }
-      }
-    } catch (SQLIntegrityConstraintViolationException e) {
-      throw new DataIntegrityException(e);
-    } catch (SQLException e) {
-      throw new DataSourceException(e);
-    }
   }
 
   private void rollbackSafely(Connection connection) {

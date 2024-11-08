@@ -5,9 +5,11 @@ import java.util.Objects;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import ru.danilarassokhin.game.sql.service.JdbcMapperService;
 import ru.danilarassokhin.game.sql.service.QueryContext;
 import ru.danilarassokhin.game.sql.service.TransactionContext;
-import ru.danilarassokhin.game.util.SneakyFunction;
+import ru.danilarassokhin.game.sql.service.QueryFunction;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
 
 @RequiredArgsConstructor
@@ -15,28 +17,31 @@ public class TransactionContextImpl implements TransactionContext {
 
   @Getter
   private final Connection connection;
-  private final DefaultRepository defaultRepository;
+  private final JdbcMapperService jdbcMapperService;
   private String schemaName;
 
   @Override
   public QueryContext query(String query, Object... args) {
-    return new QueryContextImpl(connection, defaultRepository, query, args);
+    return new QueryContextImpl(connection, jdbcMapperService, query, args);
   }
 
   @Override
+  @SneakyThrows
   public void useSchema(String schemaName) {
     this.schemaName = schemaName;
     setSchema();
   }
 
   @Override
+  @SneakyThrows
   public void readOnly() {
-    ThrowableOptional.sneaky(() -> connection.setReadOnly(true));
+    connection.setReadOnly(true);
   }
 
   @Override
-  public <T> T rawQuery(SneakyFunction<Connection, T> mapper) {
-    return ThrowableOptional.sneaky(() -> mapper.apply(connection));
+  @SneakyThrows
+  public <T> T rawQuery(QueryFunction<Connection, T> mapper) {
+    return mapper.apply(connection);
   }
 
   private void setSchema() {

@@ -20,22 +20,23 @@ import ru.danilarassokhin.game.exception.DataSourceException;
 import ru.danilarassokhin.game.exception.RepositoryException;
 import ru.danilarassokhin.game.sql.annotation.Column;
 import ru.danilarassokhin.game.sql.annotation.Entity;
+import ru.danilarassokhin.game.sql.service.ConnectionService;
+import ru.danilarassokhin.game.sql.service.JdbcMapperService;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
 import ru.danilarassokhin.game.util.TypeUtils;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
-import tech.hiddenproject.progressive.injection.GameBeanCreationPolicy;
 
 /**
- * Default proxy for repository.
+ * Mapper for JDBC queries.
  */
-@GameBean(policy = GameBeanCreationPolicy.OBJECT)
+@GameBean
 @RequiredArgsConstructor(onConstructor_ = {@Autofill})
-public class DefaultRepository {
+public class JdbcMapperServiceImpl implements JdbcMapperService {
 
-  private final TransactionManager transactionManager;
+  private final ConnectionService connectionService;
 
   /**
    * Executes SQL query.
@@ -46,11 +47,9 @@ public class DefaultRepository {
    * @param rawResult If true returns result as list of Map
    * @return List of results
    */
-  public List<Object> executeQuery(Connection connection, Class<?> resultType, String query, boolean rawResult, Object... args) {
-    if (connection == null) {
-      return transactionManager.startTransaction(c -> executeQuery(c, resultType, query, rawResult, args));
-    }
-    return transactionManager.executeQuery(connection, processQueryString(query), resultSet -> {
+  @Override
+  public List<Object> executeQuery(Connection connection, Class<?> resultType, String query, boolean rawResult, Object... args) throws SQLException {
+    return connectionService.executeQuery(connection, processQueryString(query), resultSet -> {
       try(resultSet) {
         if(rawResult) {
           return processRawResult(resultSet);
@@ -76,11 +75,9 @@ public class DefaultRepository {
    * @return either (1) the row count for SQL Data Manipulation Language (DML) statements or (2) 0
    * for SQL statements that return nothing
    */
-  public int executeUpdate(Connection connection, String query, Object... args) {
-    if (connection == null) {
-      return transactionManager.startTransaction(c -> executeUpdate(c, query, args));
-    }
-    return transactionManager.executeUpdate(connection, processQueryString(query), args);
+  @Override
+  public int executeUpdate(Connection connection, String query, Object... args) throws SQLException {
+    return connectionService.executeUpdate(connection, processQueryString(query), args);
   }
 
   private String processQueryString(String query) {

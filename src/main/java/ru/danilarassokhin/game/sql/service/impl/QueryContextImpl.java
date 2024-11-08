@@ -6,30 +6,35 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.exception.DataSourceException;
+import ru.danilarassokhin.game.sql.service.JdbcMapperService;
 import ru.danilarassokhin.game.sql.service.QueryContext;
 import ru.danilarassokhin.game.util.TypeUtils;
+import tech.hiddenproject.aide.optional.ThrowableOptional;
 
 @RequiredArgsConstructor
 public class QueryContextImpl implements QueryContext {
 
   private final Connection connection;
-  private final DefaultRepository defaultRepository;
+  private final JdbcMapperService jdbcMapperService;
   private final String query;
   private final Object[] args;
 
   @Override
   public void execute() {
-    defaultRepository.executeUpdate(connection, query, args);
+    ThrowableOptional.sneaky(() -> jdbcMapperService.executeUpdate(
+        connection, query, args), DataSourceException::new);
   }
 
   @Override
   public <T> List<T> fetchInto(Class<T> entityType) {
-    return TypeUtils.cast(defaultRepository.executeQuery(connection, entityType, query, false, args));
+    return ThrowableOptional.sneaky(() -> TypeUtils.cast(jdbcMapperService.executeQuery(
+        connection, entityType, query, false, args)), DataSourceException::new);
   }
 
   @Override
   public <T> T fetchOne(Class<T> entityType) {
-    var result = defaultRepository.executeQuery(connection, entityType, query, false, args);
+    var result = ThrowableOptional.sneaky(() -> jdbcMapperService.executeQuery(
+        connection, entityType, query, false, args), DataSourceException::new);
     if (result.size() > 1) {
       throw new DataSourceException("Query returned more than one result");
     }
@@ -38,12 +43,14 @@ public class QueryContextImpl implements QueryContext {
 
   @Override
   public <T> List<Map<String, T>> fetchRaw() {
-    return TypeUtils.cast(defaultRepository.executeQuery(connection, null, query, true, args));
+    return ThrowableOptional.sneaky(() -> TypeUtils.cast(
+        jdbcMapperService.executeQuery(connection, null, query, true, args)), DataSourceException::new);
   }
 
   @Override
   public <T> Map<String, T> fetchOneRaw() {
-    var result = defaultRepository.executeQuery(connection, null, query, true, args);
+    var result = ThrowableOptional.sneaky(() -> jdbcMapperService.executeQuery(
+        connection, null, query, true, args), DataSourceException::new);
     if (result.size() > 1) {
       throw new DataSourceException("Query returned more than one result");
     }

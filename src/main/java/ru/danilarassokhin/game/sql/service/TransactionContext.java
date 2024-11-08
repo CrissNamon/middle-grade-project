@@ -2,8 +2,6 @@ package ru.danilarassokhin.game.sql.service;
 
 import java.sql.Connection;
 
-import ru.danilarassokhin.game.util.SneakyFunction;
-
 /**
  * Represents transaction context.
  */
@@ -34,5 +32,5 @@ public interface TransactionContext {
    * @return Result of query
    * @param <T> Type of result
    */
-  <T> T rawQuery(SneakyFunction<Connection, T> mapper);
+  <T> T rawQuery(QueryFunction<Connection, T> mapper);
 }

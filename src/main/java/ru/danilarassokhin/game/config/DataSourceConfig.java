@@ -4,13 +4,13 @@ import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
-import ru.danilarassokhin.game.sql.service.TransactionManager;
-import ru.danilarassokhin.game.sql.service.impl.TransactionManagerImpl;
 import ru.danilarassokhin.game.util.PropertiesFactory;
+import tech.hiddenproject.progressive.annotation.ComponentScan;
 import tech.hiddenproject.progressive.annotation.Configuration;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
 @Configuration
+@ComponentScan("ru.danilarassokhin.game.sql.service.impl")
 public class DataSourceConfig {
 
   private static final String HIKARI_DATASOURCE_JDBC_URL_PROPERTY = "datasource.jdbc.url";
@@ -39,11 +39,6 @@ public class DataSourceConfig {
         .load();
     flyway.migrate();
     return flyway;
-  }
-
-  @GameBean
-  public TransactionManager transactionManager(DataSource dataSource, PropertiesFactory propertiesFactory) {
-    return new TransactionManagerImpl(dataSource, propertiesFactory);
   }
 
 }
