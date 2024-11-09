@@ -1,6 +1,7 @@
 package ru.danilarassokhin.game.sql.service.impl;
 
 import java.sql.Connection;
+import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +20,7 @@ public class ConnectionServiceImpl implements ConnectionService {
   @Override
   public int executeUpdate(Connection connection, String query, Object... args) throws SQLException {
     try(var statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-      fillStatement(statement, Arrays.stream(args).toList());
+      fillStatement(connection, statement, Arrays.stream(args).toList());
       return statement.executeUpdate();
     }
   }
@@ -28,12 +29,12 @@ public class ConnectionServiceImpl implements ConnectionService {
   public <T> T executeQuery(Connection connection, String query, QueryFunction<ResultSet, T> processor, Object... args)
       throws SQLException {
     try(var statement = connection.prepareStatement(query)) {
-      fillStatement(statement, Arrays.stream(args).toList());
+      fillStatement(connection, statement, Arrays.stream(args).toList());
       return processor.apply(statement.executeQuery());
     }
   }
 
-  private void fillStatement(PreparedStatement statement, Collection<?> values) throws SQLException {
+  private void fillStatement(Connection connection, PreparedStatement statement, Collection<?> values) throws SQLException {
     var index = 1;
     for (var iterator = values.iterator(); iterator.hasNext(); index++) {
       var value = iterator.next();
@@ -45,9 +46,19 @@ public class ConnectionServiceImpl implements ConnectionService {
         case Double d -> statement.setDouble(index, d);
         case UUID uuid -> statement.setObject(index, uuid);
         case Enum<?> e -> statement.setString(index, e.name());
+        case Collection<?> collection -> {
+          if (checkCollectionType(collection, Integer.class)) {
+            var array = connection.createArrayOf(JDBCType.INTEGER.getName(), collection.toArray());
+            statement.setArray(index, array);
+          }
+        }
         default -> statement.setObject(index, value);
       }
     }
+  }
+
+  private boolean checkCollectionType(Collection<?> collection, Class<?> type) {
+    return collection.stream().allMatch(Integer.class::isInstance);
   }
 
 }

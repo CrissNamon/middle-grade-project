@@ -1,5 +1,6 @@
 package ru.danilarassokhin.game.repository.impl;
 
+import java.util.List;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -21,10 +22,14 @@ public class PlayerRepositoryImpl implements PlayerRepository {
       String.format("SELECT EXISTS(SELECT 1 FROM %s WHERE id = ?);", PlayerEntity.TABLE_NAME);
   private static final String EXISTS_BY_NAME_QUERY =
       String.format("SELECT EXISTS(SELECT 1 FROM %s WHERE name = ?);", PlayerEntity.TABLE_NAME);
+  private static final String UPDATE_QUERY =
+      String.format("UPDATE %s SET money = ?, level = ?, experience = ? WHERE id = ?;", PlayerEntity.TABLE_NAME);
+  private static final String UPDATE_LEVEL_QUERY =
+      String.format("UPDATE %s SET level = level + 1 WHERE id = ANY (?);", PlayerEntity.TABLE_NAME);
 
   @Override
   public Integer save(TransactionContext ctx, PlayerEntity entity) {
-    return ctx.query(SAVE_QUERY, entity.name()).fetchOne(Integer.class);
+    return ctx.query(SAVE_QUERY, entity.getName()).fetchOne(Integer.class);
   }
 
   @Override
@@ -40,5 +45,16 @@ public class PlayerRepositoryImpl implements PlayerRepository {
   @Override
   public boolean existsByName(TransactionContext ctx, String name) {
     return ctx.query(EXISTS_BY_NAME_QUERY, name).fetchOne(Boolean.class);
+  }
+
+  @Override
+  public void update(TransactionContext ctx, PlayerEntity playerEntity) {
+    ctx.query(UPDATE_QUERY, playerEntity.getMoney(), playerEntity.getLevel(),
+              playerEntity.getExperience(), playerEntity.getId()).execute();
+  }
+
+  @Override
+  public void updateLevelsForIds(TransactionContext ctx, List<Integer> playerIds) {
+    ctx.query(UPDATE_LEVEL_QUERY, playerIds).execute();
   }
 }
