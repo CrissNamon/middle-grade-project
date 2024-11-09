@@ -20,6 +20,7 @@ import ru.danilarassokhin.game.repository.DamageLogRepository;
 import ru.danilarassokhin.game.repository.DungeonRepository;
 import ru.danilarassokhin.game.repository.PlayerRepository;
 import ru.danilarassokhin.game.service.DungeonService;
+import ru.danilarassokhin.game.sql.service.TransactionContext;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
 import ru.danilarassokhin.game.util.AwaitUtil;
 import tech.hiddenproject.progressive.annotation.Autofill;
@@ -63,24 +64,33 @@ public class DungeonServiceImpl implements DungeonService {
         var player = playerRepository.findById(ctx, createDamageLogDto.playerId())
             .orElseThrow(() -> new ApplicationException("Player not found"));
         var newDamage = calculateDamage(player, dungeon);
-        var currentDamage = damageLogRepository.countDamage(ctx, createDamageLogDto.dungeonId());
-        if (currentDamage < dungeon.code().getHealth()) {
-          damageLogRepository.save(ctx, new DamageLogEntity(createDamageLogDto.playerId(),
-            createDamageLogDto.dungeonId(),newDamage));
-        }
+        var currentDamage = dealDamage(ctx, createDamageLogDto, dungeon, newDamage);
         playerRepository.update(ctx, player.addMoney(calculateMoney(player, dungeon)));
         if (currentDamage + newDamage >= dungeon.code().getHealth()) {
-          var activePlayers = damageLogRepository.findPlayersForActiveDungeon(ctx,
-            createDamageLogDto.dungeonId());
-          playerRepository.updateLevelsForIds(ctx, activePlayers);
-          damageLogRepository.revive(ctx, createDamageLogDto.dungeonId());
-          return new DungeonStateDto(DungeonState.COMPLETED, dungeon.code());
+          return reviveDungeon(ctx, createDamageLogDto, dungeon);
         }
         return new DungeonStateDto(DungeonState.ALIVE, dungeon.code());
       });
     } catch (DataSourceException e) {
       throw new ApplicationException("Error during attack. Try again");
     }
+  }
+
+  private Long dealDamage(TransactionContext ctx, CreateDamageLogDto createDamageLogDto, DungeonEntity dungeon, Integer newDamage) {
+    var currentDamage = damageLogRepository.countDamage(ctx, createDamageLogDto.dungeonId());
+    if (currentDamage < dungeon.code().getHealth()) {
+      damageLogRepository.save(ctx, new DamageLogEntity(createDamageLogDto.playerId(),
+        createDamageLogDto.dungeonId(), newDamage));
+    }
+    return currentDamage;
+  }
+
+  private DungeonStateDto reviveDungeon(TransactionContext ctx, CreateDamageLogDto createDamageLogDto, DungeonEntity dungeon) {
+    var activePlayers = damageLogRepository.findPlayersForActiveDungeon(ctx,
+      createDamageLogDto.dungeonId());
+    playerRepository.updateLevelsForIds(ctx, activePlayers);
+    damageLogRepository.revive(ctx, createDamageLogDto.dungeonId());
+    return new DungeonStateDto(DungeonState.COMPLETED, dungeon.code());
   }
 
   private Integer calculateDamage(PlayerEntity playerEntity, DungeonEntity dungeon) {
