@@ -49,9 +49,15 @@ public class DungeonServiceImpl implements DungeonService {
         .orElseThrow(() -> new ApplicationException("Dungeon save failed"));
   }
 
+  //Используем SERIALIZABLE, т.к. транзакция выполняет аггрегацию и вставку новых строк в таблицу
+  //Несколько игроков атакуют одного монстра => строки с уроном должны вставляться строго последовательно
+  //Т.е. нужна полная изоляция
+  //REPEATABLE READ обеспечивает изоляцию только для изменения строк несколькими транзакциями
+  //Т.к. в Postgres SERIALIZABLE использует предикатные блокировки, транзакция может упасть с ошибкой сериализации
+  //Повторяем транзакцию пока не выполнится успешно, но не более 10 раз
   @Override
   public DungeonStateDto attack(CreateDamageLogDto createDamageLogDto) {
-    return AwaitUtil.retryOnError(1, () -> attackDungeonTransaction(createDamageLogDto),
+    return AwaitUtil.retryOnError(10, () -> attackDungeonTransaction(createDamageLogDto),
       () -> log.warn("Transaction attack(CreateDamageLogDto) failed. Retrying..."),
       DataSourceException.class, SQLException.class);
   }
