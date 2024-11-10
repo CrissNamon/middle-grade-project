@@ -15,7 +15,7 @@ public class MarketController {
   private final MarketService marketService;
 
   @PostRequest("/api/market")
-  public ResponseEntity butItem(BuyItemRequest request) {
+  public ResponseEntity buyItem(BuyItemRequest request) {
     marketService.buyItem(request.playerId(), request.itemId());
     return ResponseEntity.ok();
   }

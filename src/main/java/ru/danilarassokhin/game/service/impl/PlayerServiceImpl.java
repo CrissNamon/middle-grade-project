@@ -23,7 +23,7 @@ public class PlayerServiceImpl implements PlayerService {
   private final PlayerMapper playerMapper;
 
   @Override
-  public PlayerDto createPlayer(CreatePlayerDto createPlayerDto) {
+  public PlayerDto create(CreatePlayerDto createPlayerDto) {
     Optional<PlayerEntity> createdPlayer = transactionManager.fetchInTransaction(ctx -> {
       if (!playerRepository.existsByName(ctx, createPlayerDto.name())) {
         var newPlayerId = playerRepository.save(ctx, playerMapper.createPlayerDtoToEntity(createPlayerDto));
@@ -34,5 +34,12 @@ public class PlayerServiceImpl implements PlayerService {
     return createdPlayer
         .map(playerMapper::playerEntityToDto)
         .orElseThrow(() -> new ApplicationException("Player creation failed"));
+  }
+
+  @Override
+  public PlayerDto getById(Integer id) {
+    return transactionManager.fetchInTransaction(ctx -> playerRepository.findById(ctx, id))
+        .map(playerMapper::playerEntityToDto)
+        .orElseThrow(() -> new ApplicationException("Player not found"));
   }
 }

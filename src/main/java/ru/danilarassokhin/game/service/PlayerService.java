@@ -13,6 +13,13 @@ public interface PlayerService {
    * @param createPlayerDto {@link CreatePlayerDto}
    * @return {@link PlayerDto}
    */
-  PlayerDto createPlayer(CreatePlayerDto createPlayerDto);
+  PlayerDto create(CreatePlayerDto createPlayerDto);
+
+  /**
+   * Searches player by id.
+   * @param id Player id
+   * @return {@link PlayerDto}
+   */
+  PlayerDto getById(Integer id);
 
 }
