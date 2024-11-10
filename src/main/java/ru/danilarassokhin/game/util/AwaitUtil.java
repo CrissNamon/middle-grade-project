@@ -25,4 +25,13 @@ public class AwaitUtil {
     }
     throw new ApplicationException("Wrong times specified");
   }
+
+  @SafeVarargs
+  public static void retryOnError(Integer times, Action action, Action onError, Class<? extends Throwable>... errors) {
+    AwaitUtil.retryOnError(times, () -> {
+      action.make();
+      return null;
+    }, onError, errors);
+  }
+
 }

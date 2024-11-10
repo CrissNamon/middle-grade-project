@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Validator;
 import ru.danilarassokhin.game.controller.DungeonController;
 import ru.danilarassokhin.game.controller.GlobalExceptionHandler;
+import ru.danilarassokhin.game.controller.MarketController;
 import ru.danilarassokhin.game.controller.PlayerController;
 import ru.danilarassokhin.game.server.DispatcherController;
 import ru.danilarassokhin.game.server.impl.ReflectiveDispatcherController;
@@ -38,9 +39,11 @@ public class HttpConfig {
       HttpHandlerProcessor httpHandlerProcessor,
       GlobalExceptionHandler globalExceptionHandler,
       PlayerController playerController,
-      DungeonController dungeonController
+      DungeonController dungeonController,
+      MarketController marketController
   ) {
-    return new ReflectiveDispatcherController(httpHandlerProcessor, globalExceptionHandler, playerController, dungeonController);
+    return new ReflectiveDispatcherController(httpHandlerProcessor, globalExceptionHandler,
+                                              playerController, dungeonController, marketController);
   }
 
 }

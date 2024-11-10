@@ -6,6 +6,9 @@ import lombok.experimental.Accessors;
 import ru.danilarassokhin.game.sql.annotation.Column;
 import ru.danilarassokhin.game.sql.annotation.Entity;
 
+/**
+ * Table for players.
+ */
 @Entity(PlayerEntity.TABLE_NAME)
 @Setter
 @Getter

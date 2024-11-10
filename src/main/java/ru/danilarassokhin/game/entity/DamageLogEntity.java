@@ -5,6 +5,15 @@ import java.time.LocalDateTime;
 import ru.danilarassokhin.game.sql.annotation.Column;
 import ru.danilarassokhin.game.sql.annotation.Entity;
 
+/**
+ * Table for damage log entries.
+ * @param id Log id
+ * @param playerId Player id
+ * @param dungeonId Dungeon id
+ * @param dateTime Time of creation
+ * @param active Is log active
+ * @param damage Damage count
+ */
 @Entity(DamageLogEntity.TABLE_NAME)
 public record DamageLogEntity(
     @Column("id") Integer id,

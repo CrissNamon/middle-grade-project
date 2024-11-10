@@ -4,6 +4,12 @@ import ru.danilarassokhin.game.entity.data.Dungeon;
 import ru.danilarassokhin.game.sql.annotation.Column;
 import ru.danilarassokhin.game.sql.annotation.Entity;
 
+/**
+ * Table for dungeons.
+ * @param id Dungeon id
+ * @param level Level
+ * @param code {@link Dungeon}
+ */
 @Entity(DungeonEntity.TABLE_NAME)
 public record DungeonEntity(
     @Column("id") Integer id,
