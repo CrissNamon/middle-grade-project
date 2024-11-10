@@ -1,5 +1,7 @@
 package ru.danilarassokhin.game.service.impl;
 
+import static ru.danilarassokhin.game.config.DataSourceConfig.TRANSACTION_DEFAULT_RETRY_COUNT;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -22,6 +24,8 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 @Slf4j
 public class MarketServiceImpl implements MarketService {
 
+
+
   private final TransactionManager transactionManager;
   private final MarketRepository marketRepository;
   private final PlayerItemRepository playerItemRepository;
@@ -33,7 +37,7 @@ public class MarketServiceImpl implements MarketService {
   //Повторяем транзакцию пока не выполнится, но не более 10 раз
   @Override
   public void buyItem(Integer playerId, Integer itemId) {
-    AwaitUtil.retryOnError(10, () -> buyItemTransaction(playerId, itemId),
+    AwaitUtil.retryOnError(TRANSACTION_DEFAULT_RETRY_COUNT, () -> buyItemTransaction(playerId, itemId),
                            () -> log.warn("Transaction buyItem(Integer, Integer) failed. Retrying.."),
                            DataSourceException.class, SQLException.class);
   }

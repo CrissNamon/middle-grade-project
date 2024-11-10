@@ -1,5 +1,7 @@
 package ru.danilarassokhin.game.service.impl;
 
+import static ru.danilarassokhin.game.config.DataSourceConfig.TRANSACTION_DEFAULT_RETRY_COUNT;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -31,6 +33,8 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 @Slf4j
 public class DungeonServiceImpl implements DungeonService {
 
+  private static final Integer MINIMUM_DAMAGE_COUNT = 1;
+
   private final TransactionManager transactionManager;
   private final DungeonMapper dungeonMapper;
   private final DungeonRepository dungeonRepository;
@@ -57,9 +61,10 @@ public class DungeonServiceImpl implements DungeonService {
   //Повторяем транзакцию пока не выполнится успешно, но не более 10 раз
   @Override
   public DungeonStateDto attack(CreateDamageLogDto createDamageLogDto) {
-    return AwaitUtil.retryOnError(10, () -> attackDungeonTransaction(createDamageLogDto),
-      () -> log.warn("Transaction attack(CreateDamageLogDto) failed. Retrying..."),
-      DataSourceException.class, SQLException.class);
+    return AwaitUtil.retryOnError(TRANSACTION_DEFAULT_RETRY_COUNT,
+                                  () -> attackDungeonTransaction(createDamageLogDto),
+                                  () -> log.warn("Transaction attack(CreateDamageLogDto) failed. Retrying..."),
+                                  DataSourceException.class, SQLException.class);
   }
 
   private DungeonStateDto attackDungeonTransaction(CreateDamageLogDto createDamageLogDto) {
@@ -100,7 +105,7 @@ public class DungeonServiceImpl implements DungeonService {
   }
 
   private Integer calculateDamage(PlayerEntity playerEntity, DungeonEntity dungeon) {
-    return Math.max(playerEntity.getExperience() * 4 - dungeon.level() * 2, 1);
+    return Math.max(playerEntity.getExperience() * 4 - dungeon.level() * 2, MINIMUM_DAMAGE_COUNT);
   }
 
   private Integer calculateMoney(PlayerEntity playerEntity, DungeonEntity dungeon) {

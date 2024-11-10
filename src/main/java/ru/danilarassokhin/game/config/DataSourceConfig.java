@@ -16,6 +16,8 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 @ComponentScan("ru.danilarassokhin.game.sql.service.impl")
 public class DataSourceConfig {
 
+  public static final Integer TRANSACTION_DEFAULT_RETRY_COUNT = 10;
+
   private static final String HIKARI_DATASOURCE_JDBC_URL_PROPERTY = "datasource.jdbc.url";
   private static final String HIKARI_DATASOURCE_USER_NAME_PROPERTY = "datasource.jdbc.user";
   private static final String HIKARI_DATASOURCE_PASSWORD_PROPERTY = "datasource.jdbc.password";
