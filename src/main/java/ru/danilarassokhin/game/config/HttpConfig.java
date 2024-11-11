@@ -12,7 +12,7 @@ import ru.danilarassokhin.game.server.reflection.HttpBodyMapper;
 import ru.danilarassokhin.game.server.reflection.HttpHandlerProcessor;
 import ru.danilarassokhin.game.server.reflection.impl.HttpBodyMapperImpl;
 import ru.danilarassokhin.game.server.reflection.impl.HttpHandlerProcessorImpl;
-import ru.danilarassokhin.game.service.impl.HttpExceptionHandlerImpl;
+import ru.danilarassokhin.game.service.HttpExceptionHandler;
 import tech.hiddenproject.progressive.annotation.Configuration;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
@@ -30,7 +30,7 @@ public class HttpConfig {
   }
 
   @GameBean(order = 2)
-  public HttpHandlerProcessor httpHandlerProcessor(HttpBodyMapper httpBodyMapper, Validator validator, HttpExceptionHandlerImpl httpExceptionHandler) {
+  public HttpHandlerProcessor httpHandlerProcessor(HttpBodyMapper httpBodyMapper, Validator validator, HttpExceptionHandler httpExceptionHandler) {
     return new HttpHandlerProcessorImpl(httpBodyMapper, validator, httpExceptionHandler);
   }
 
