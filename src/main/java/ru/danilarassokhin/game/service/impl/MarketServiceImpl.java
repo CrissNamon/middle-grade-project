@@ -35,8 +35,9 @@ public class MarketServiceImpl implements MarketService {
 
   @Override
   public MarketItemDto create(CreateMarketItemDto createMarketItemDto) {
-    return transactionManager.fetchInTransaction(ctx -> {
-      var id = marketRepository.save(ctx, marketMapper.createMarketEntityFromCreateMarketItemDto(createMarketItemDto));
+    return transactionManager.fetchInTransaction(Connection.TRANSACTION_REPEATABLE_READ, ctx -> {
+      var entity = marketMapper.createMarketEntityFromCreateMarketItemDto(createMarketItemDto);
+      var id = marketRepository.save(ctx, entity);
       return marketRepository.findById(ctx, id)
           .map(marketMapper::marketEntityToMarketItemDto)
           .orElseThrow(() -> new ApplicationException("Error creating market item"));
