@@ -14,12 +14,32 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 @AnnotateWith(GameBean.class)
 public interface DungeonMapper {
 
+  /**
+   * Converts {@link DungeonEntity} to {@link DungeonDto}.
+   * @param entity {@link DungeonEntity}
+   * @return {@link DungeonDto}
+   */
   DungeonDto dungeonEntityToDto(DungeonEntity entity);
 
+  /**
+   * Converts {@link CreateDungeonDto} to {@link DungeonEntity}.
+   * @param createDungeonDto {@link CreateDungeonDto}
+   * @return {@link DungeonEntity}
+   */
   DungeonEntity createDungeonDtoToEntity(CreateDungeonDto createDungeonDto);
 
+  /**
+   * Converts {@link CreateDungeonRequest} to {@link CreateDungeonDto}.
+   * @param request {@link CreateDungeonRequest}
+   * @return {@link CreateDungeonDto}
+   */
   CreateDungeonDto createDungeonRequestToDto(CreateDungeonRequest request);
 
+  /**
+   * Converts {@link DungeonAttackRequest} to {@link CreateDamageLogDto}.
+   * @param request {@link DungeonAttackRequest}
+   * @return {@link CreateDamageLogDto}
+   */
   CreateDamageLogDto createDungeonLogDtoFromRequest(DungeonAttackRequest request);
 
 }

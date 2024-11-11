@@ -12,10 +12,25 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 @AnnotateWith(GameBean.class)
 public interface PlayerMapper {
 
+  /**
+   * Converts {@link CreatePlayerRequest} to {@link CreatePlayerDto}.
+   * @param createPlayerRequest {@link CreatePlayerRequest}
+   * @return {@link CreatePlayerDto}
+   */
   CreatePlayerDto createPlayerRequestToDto(CreatePlayerRequest createPlayerRequest);
 
+  /**
+   * Converts {@link PlayerEntity} to {@link PlayerDto}.
+   * @param playerEntity {@link PlayerEntity}
+   * @return {@link PlayerDto}
+   */
   PlayerDto playerEntityToDto(PlayerEntity playerEntity);
 
+  /**
+   * Converts {@link CreatePlayerDto} to {@link PlayerEntity}.
+   * @param createPlayerDto {@link CreatePlayerDto}
+   * @return {@link PlayerEntity}
+   */
   PlayerEntity createPlayerDtoToEntity(CreatePlayerDto createPlayerDto);
 
 }
