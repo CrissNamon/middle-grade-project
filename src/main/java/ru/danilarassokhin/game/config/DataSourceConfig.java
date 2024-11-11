@@ -35,7 +35,6 @@ public class DataSourceConfig {
     dataSource.setJdbcUrl(propertiesFactory.getAsString(HIKARI_DATASOURCE_JDBC_URL_PROPERTY).orElseThrow());
     dataSource.setUsername(propertiesFactory.getAsString(HIKARI_DATASOURCE_USER_NAME_PROPERTY).orElseThrow());
     dataSource.setPassword(propertiesFactory.getAsString(HIKARI_DATASOURCE_PASSWORD_PROPERTY).orElseThrow());
-    dataSource.setDataSourceProperties(propertiesFactory.getAll());
     dataSource.setLeakDetectionThreshold(propertiesFactory.getAsInt(HIKARI_DATASOURCE_LEAK_DETECTION_THRESHOLD_PROPERTY).orElseThrow());
     return ProxyDataSourceBuilder.create(dataSource)
         .listener(loggingListener)
