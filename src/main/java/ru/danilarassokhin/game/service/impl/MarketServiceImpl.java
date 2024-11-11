@@ -33,6 +33,8 @@ public class MarketServiceImpl implements MarketService {
   private final PlayerItemRepository playerItemRepository;
   private final PlayerRepository playerRepository;
 
+  //Используем REPEATABLE READ т.к. транзакция может не только создавать, но и обновлять данные
+  //Метод buy() также может менять существующие данные.
   @Override
   public MarketItemDto create(CreateMarketItemDto createMarketItemDto) {
     return transactionManager.fetchInTransaction(Connection.TRANSACTION_REPEATABLE_READ, ctx -> {
