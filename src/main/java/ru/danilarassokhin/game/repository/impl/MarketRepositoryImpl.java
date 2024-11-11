@@ -11,7 +11,10 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 public class MarketRepositoryImpl implements MarketRepository {
 
   private static final String SAVE_QUERY =
-      String.format("INSERT INTO %s(item_code, price, amount) VALUES(?, ?, ?) RETURNING ID;", MarketEntity.TABLE_NAME);
+      String.format("""
+        INSERT INTO %s(item_code, price, amount) VALUES(?, ?, ?) 
+         ON CONFLICT ON CONSTRAINT %s DO UPDATE SET price = EXCLUDED.price, amount = %s.amount + EXCLUDED.amount
+         RETURNING ID;""", MarketEntity.TABLE_NAME, MarketEntity.UX_MARKET_ITEM_PRICE_CONSTRAINT, MarketEntity.TABLE_NAME);
   private static final String FIND_BY_ID_QUERY =
       String.format("SELECT * FROM %s WHERE id = ?;", MarketEntity.TABLE_NAME);
   private static final String EXISTS_BY_ID_QUERY =

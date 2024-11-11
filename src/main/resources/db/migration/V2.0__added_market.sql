@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS market(
   item_code text not null,
   price integer not null,
   amount integer not null,
+  constraint ux_market_item_price unique (item_code, price),
   CHECK (amount > -1)
 );
 

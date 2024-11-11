@@ -20,5 +20,6 @@ public record MarketEntity(
 ) {
 
   public static final String TABLE_NAME = "market";
+  public static final String UX_MARKET_ITEM_PRICE_CONSTRAINT = "ux_market_item_price";
 
 }

@@ -13,8 +13,8 @@ public class PlayerItemRepositoryImpl implements PlayerItemRepository {
   private static final String SAVE_QUERY =
       String.format("""
         INSERT INTO %s(player_id, item_code, amount) VALUES(?, ?, ?) 
-        ON CONFLICT ON CONSTRAINT %s DO UPDATE SET amount = EXCLUDED.amount + ? RETURNING ID;
-        """, PlayerItem.TABLE_NAME, PlayerItem.UX_PLAYER_ITEM_ID_CONSTRAINT);
+        ON CONFLICT ON CONSTRAINT %s DO UPDATE SET amount = %s.amount + EXCLUDED.amount RETURNING ID;
+        """, PlayerItem.TABLE_NAME, PlayerItem.UX_PLAYER_ITEM_ID_CONSTRAINT, PlayerItem.TABLE_NAME);
   private static final String FIND_BY_ID_QUERY =
       String.format("SELECT * FROM %s WHERE id = ?;", PlayerItem.TABLE_NAME);
   private static final String EXISTS_BY_ID_QUERY =
@@ -22,8 +22,7 @@ public class PlayerItemRepositoryImpl implements PlayerItemRepository {
 
   @Override
   public Integer save(TransactionContext ctx, PlayerItem entity) {
-    return ctx.query(SAVE_QUERY, entity.playerId(), entity.item().name(), entity.amount(),
-                     entity.amount()).fetchOne(Integer.class);
+    return ctx.query(SAVE_QUERY, entity.playerId(), entity.item().name(), entity.amount()).fetchOne(Integer.class);
   }
 
   @Override
