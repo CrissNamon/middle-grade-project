@@ -23,6 +23,7 @@ public class DataSourceConfig {
   private static final String HIKARI_DATASOURCE_PASSWORD_PROPERTY = "datasource.jdbc.password";
   private static final String HIKARI_DATASOURCE_MINIMUM_IDLE_PROPERTY = "datasource.pool.minimum-idle";
   private static final String HIKARI_DATASOURCE_MAXIMUM_POOL_SIZE_PROPERTY = "datasource.pool.maximum-size";
+  private static final String HIKARI_DATASOURCE_LEAK_DETECTION_THRESHOLD_PROPERTY = "datasource.leakDetectionThreshold";
 
   @GameBean
   public DataSource hikariDataSource(PropertiesFactory propertiesFactory) {
@@ -35,6 +36,7 @@ public class DataSourceConfig {
     dataSource.setUsername(propertiesFactory.getAsString(HIKARI_DATASOURCE_USER_NAME_PROPERTY).orElseThrow());
     dataSource.setPassword(propertiesFactory.getAsString(HIKARI_DATASOURCE_PASSWORD_PROPERTY).orElseThrow());
     dataSource.setDataSourceProperties(propertiesFactory.getAll());
+    dataSource.setLeakDetectionThreshold(propertiesFactory.getAsInt(HIKARI_DATASOURCE_LEAK_DETECTION_THRESHOLD_PROPERTY).orElseThrow());
     return ProxyDataSourceBuilder.create(dataSource)
         .listener(loggingListener)
         .logQueryByLog4j()

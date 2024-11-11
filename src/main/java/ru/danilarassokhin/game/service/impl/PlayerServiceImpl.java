@@ -38,7 +38,10 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Override
   public PlayerDto getById(Integer id) {
-    return transactionManager.fetchInTransaction(ctx -> playerRepository.findById(ctx, id))
+    return transactionManager.fetchInTransaction(ctx -> {
+          ctx.readOnly();
+          return playerRepository.findById(ctx, id);
+        })
         .map(playerMapper::playerEntityToDto)
         .orElseThrow(() -> new ApplicationException("Player not found"));
   }
