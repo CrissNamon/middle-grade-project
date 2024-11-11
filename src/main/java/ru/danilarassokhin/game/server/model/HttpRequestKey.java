@@ -61,7 +61,7 @@ public record HttpRequestKey(HttpMethod method, String contentType, String uri, 
     return IntStream.range(0, patternPaths.length)
         .mapToObj(index -> {
           if (patternPaths[index].startsWith(PATH_PARAMETER_PREFIX)) {
-            var name = patternPaths[index].substring(1, patternPaths.length - 1);
+            var name = patternPaths[index].substring(1, patternPaths[index].length() - 1);
             var value = castParameterValue(uriPaths[index]);
             return ImmutablePair.of(name, value);
           }
