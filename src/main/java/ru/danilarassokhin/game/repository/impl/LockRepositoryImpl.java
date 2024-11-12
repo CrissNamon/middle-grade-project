@@ -11,7 +11,7 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 public class LockRepositoryImpl implements LockRepository {
 
   private static final String SET_LOCK_TIMEOUT_QUERY = "SET LOCAL lock_timeout = '%ds';";
-  private static final String XACT_LOCK_QUERY = "SELECT 1, pg_advisory_xact_lock(hashtext(?));";
+  private static final String XACT_LOCK_QUERY = "SELECT pg_advisory_xact_lock(hashtext(?));";
 
   /**
    * Acquires lock with name or waits given time.
