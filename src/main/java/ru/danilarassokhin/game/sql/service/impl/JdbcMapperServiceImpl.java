@@ -122,7 +122,7 @@ public class JdbcMapperServiceImpl implements JdbcMapperService {
     var resultTypeConstructor = Arrays.stream(resultType.getDeclaredConstructors())
         .filter(this::isConstructorAnnotatedForDb)
         .findFirst()
-        .orElseThrow();
+        .orElseThrow(() -> new DataSourceException(resultType.getCanonicalName() + " does not have constructors with @Column annotations"));
     var result = new ArrayList<>();
     while (resultSet.next()) {
       var constructorValues = Arrays.stream(resultTypeConstructor.getParameters())

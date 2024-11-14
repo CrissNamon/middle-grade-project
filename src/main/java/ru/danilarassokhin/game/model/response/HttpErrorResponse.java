@@ -1,7 +1,7 @@
 package ru.danilarassokhin.game.model.response;
 
 /**
- * Response dto for errors.
+ * DTO for error response from controller.
  * @param message Error message
  */
 public record HttpErrorResponse(String message) {}

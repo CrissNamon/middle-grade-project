@@ -5,7 +5,7 @@ import java.util.Objects;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import ru.danilarassokhin.game.exception.DataSourceException;
 import ru.danilarassokhin.game.sql.service.JdbcMapperService;
 import ru.danilarassokhin.game.sql.service.QueryContext;
 import ru.danilarassokhin.game.sql.service.TransactionContext;
@@ -26,27 +26,24 @@ public class TransactionContextImpl implements TransactionContext {
   }
 
   @Override
-  @SneakyThrows
   public void useSchema(String schemaName) {
     this.schemaName = schemaName;
     setSchema();
   }
 
   @Override
-  @SneakyThrows
-  public void readOnly() {
-    connection.setReadOnly(true);
+  public void readOnly() throws DataSourceException {
+    ThrowableOptional.sneaky(() -> connection.setReadOnly(true), DataSourceException::new);
   }
 
   @Override
-  @SneakyThrows
-  public <T> T rawQuery(QueryFunction<Connection, T> mapper) {
-    return mapper.apply(connection);
+  public <T> T rawQuery(QueryFunction<Connection, T> mapper) throws DataSourceException {
+    return ThrowableOptional.sneaky(() -> mapper.apply(connection), DataSourceException::new);
   }
 
   private void setSchema() {
     if (Objects.nonNull(schemaName)) {
-      ThrowableOptional.sneaky(() -> connection.setSchema(schemaName));
+      ThrowableOptional.sneaky(() -> connection.setSchema(schemaName), DataSourceException::new);
     }
   }
 }
