@@ -51,7 +51,7 @@ public class PropertiesFactoryImpl implements PropertiesFactory {
 
   private String getValueFromEnv(String value) {
     if (value.startsWith(ENV_PROPERTIES_PREFIX)) {
-      return environmentProperties.get(ENV_PROPERTIES_PREFIX + value + ENV_PROPERTIES_POSTFIX);
+      return environmentProperties.get(value);
     }
     return value;
   }

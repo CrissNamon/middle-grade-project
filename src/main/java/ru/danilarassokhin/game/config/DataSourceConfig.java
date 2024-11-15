@@ -24,6 +24,7 @@ public class DataSourceConfig {
   private static final String HIKARI_DATASOURCE_MINIMUM_IDLE_PROPERTY = "datasource.pool.minimum-idle";
   private static final String HIKARI_DATASOURCE_MAXIMUM_POOL_SIZE_PROPERTY = "datasource.pool.maximum-size";
   private static final String HIKARI_DATASOURCE_LEAK_DETECTION_THRESHOLD_PROPERTY = "datasource.leakDetectionThreshold";
+  private static final String FLYWAY_LOCATIONS_PROPERTY = "flyway.locations";
 
   @GameBean
   public DataSource hikariDataSource(PropertiesFactory propertiesFactory) {
@@ -47,7 +48,7 @@ public class DataSourceConfig {
   public Flyway flyway(DataSource dataSource, PropertiesFactory propertiesFactory) {
     var flyway = Flyway.configure()
         .dataSource(dataSource)
-        .configuration(propertiesFactory.getAll())
+        .locations(propertiesFactory.getAsString(FLYWAY_LOCATIONS_PROPERTY).orElseThrow())
         .load();
     flyway.migrate();
     return flyway;
