@@ -8,6 +8,8 @@ import io.camunda.tasklist.CamundaTaskListClient;
 import io.camunda.tasklist.auth.Authentication;
 import io.camunda.tasklist.auth.SimpleAuthentication;
 import io.camunda.tasklist.auth.SimpleCredential;
+import io.camunda.tasklist.dto.Pagination;
+import io.camunda.tasklist.dto.TaskSearch;
 import io.camunda.tasklist.exception.TaskListException;
 import io.camunda.zeebe.client.ZeebeClient;
 import ru.danilarassokhin.game.exception.CamundaException;
@@ -47,11 +49,14 @@ public class CamundaConfig {
   @GameBean
   public CamundaTaskListClient camundaTaskListClient(Authentication authentication, PropertiesFactory propertiesFactory) {
     try {
-      return CamundaTaskListClient.builder()
+      var client = CamundaTaskListClient.builder()
           .taskListUrl(propertiesFactory.getAsString(CAMUNDA_TASK_LIST_URL_PROPERTY).orElseThrow())
           .shouldReturnVariables()
           .authentication(authentication)
           .build();
+      //Simple query for authentication test
+      client.getTasks(new TaskSearch().setPagination(new Pagination().setPageSize(1)));
+      return client;
     } catch (TaskListException e) {
       throw new CamundaException("Error while bootstrapping tasklist client", e);
     }

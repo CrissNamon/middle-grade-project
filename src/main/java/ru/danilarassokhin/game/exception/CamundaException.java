@@ -5,10 +5,6 @@ package ru.danilarassokhin.game.exception;
  */
 public class CamundaException extends RuntimeException {
 
-  public CamundaException(String message) {
-    super(message);
-  }
-
   public CamundaException(Throwable cause) {
     super(cause);
   }

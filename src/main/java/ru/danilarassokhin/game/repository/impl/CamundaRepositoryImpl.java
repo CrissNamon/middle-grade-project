@@ -75,7 +75,7 @@ public class CamundaRepositoryImpl implements CamundaRepository {
     try {
       return getActionsFromUserTasks(taskListClient.getTasks(createTaskSearch(businessKey)).getItems());
     } catch (TaskListException e) {
-      throw new RuntimeException(e);
+      throw new CamundaException(e);
     }
   }
 
@@ -84,7 +84,7 @@ public class CamundaRepositoryImpl implements CamundaRepository {
     try {
       taskListClient.completeTask(action.taskId(), Map.of(ACTION_VARIABLE_NAME, action.id()));
     } catch (TaskListException e) {
-      throw new RuntimeException(e);
+      throw new CamundaException(e);
     }
   }
 
@@ -115,7 +115,7 @@ public class CamundaRepositoryImpl implements CamundaRepository {
           .flatMap(variable -> ((List<String>) variable.getValue()).stream())
           .toList();
     } catch (TaskListException e) {
-      throw new RuntimeException(e);
+      throw new CamundaException(e);
     }
   }
 

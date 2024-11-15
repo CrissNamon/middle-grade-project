@@ -61,21 +61,6 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=action = "m_dungeon"</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
   </bpmn:process>
-  <bpmn:message id="Message_3h3pgp0" name="m_dungeon">
-    <bpmn:extensionElements>
-      <zeebe:subscription correlationKey="=businessKey" />
-    </bpmn:extensionElements>
-  </bpmn:message>
-  <bpmn:message id="Message_1jpd97v" name="m_inventory">
-    <bpmn:extensionElements>
-      <zeebe:subscription correlationKey="=businessKey" />
-    </bpmn:extensionElements>
-  </bpmn:message>
-  <bpmn:message id="Message_3blbd72" name="m_main_menu">
-    <bpmn:extensionElements>
-      <zeebe:subscription correlationKey="=businessKey" />
-    </bpmn:extensionElements>
-  </bpmn:message>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1aaq44z">
       <bpmndi:BPMNShape id="Participant_18o7826_di" bpmnElement="Participant_18o7826" isHorizontal="true">
