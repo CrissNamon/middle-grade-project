@@ -30,5 +30,11 @@ public interface PropertiesFactory {
    */
   Properties getAll();
 
+  /**
+   * Gets property as array with given delimiter.
+   * @param name Name of property
+   * @param delimiter Delimiter for values
+   * @return Optional property values
+   */
   Optional<List<String>> getAsArray(String name, String delimiter);
 }
