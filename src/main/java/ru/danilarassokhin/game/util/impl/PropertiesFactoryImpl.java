@@ -1,7 +1,7 @@
 package ru.danilarassokhin.game.util.impl;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -16,13 +16,17 @@ import ru.danilarassokhin.game.exception.ApplicationException;
 @Slf4j
 public class PropertiesFactoryImpl implements PropertiesFactory {
 
+  private static final String ENV_PROPERTIES_PREFIX = "${";
+  private static final String ENV_PROPERTIES_POSTFIX = "}";
   private static final String PROPERTIES_PATH = "/application.properties";
 
   private final Properties applicationProperties = new Properties();
+  private final Map<String, String> environmentProperties = new HashMap<>();
 
   public PropertiesFactoryImpl() {
     try {
       log.info("Loading util properties from: {}", PROPERTIES_PATH);
+      System.getenv().forEach((property, value) -> environmentProperties.put(ENV_PROPERTIES_PREFIX + property + ENV_PROPERTIES_POSTFIX, value));
       applicationProperties.load(PropertiesFactoryImpl.class.getResourceAsStream(PROPERTIES_PATH));
     } catch (Exception e) {
       throw new ApplicationException("Failed to load properties file", e);
@@ -36,7 +40,8 @@ public class PropertiesFactoryImpl implements PropertiesFactory {
 
   @Override
   public Optional<String> getAsString(String name) {
-    return Optional.ofNullable(applicationProperties.getProperty(name));
+    return Optional.ofNullable(applicationProperties.getProperty(name))
+        .map(this::getValueFromEnv);
   }
 
   @Override
@@ -44,9 +49,11 @@ public class PropertiesFactoryImpl implements PropertiesFactory {
     return applicationProperties;
   }
 
-  @Override
-  public Optional<List<String>> getAsArray(String name, String delimiter) {
-    return Optional.ofNullable(applicationProperties.getProperty(name))
-        .map(property -> Arrays.stream(property.split(delimiter)).toList());
+  private String getValueFromEnv(String value) {
+    if (value.startsWith(ENV_PROPERTIES_PREFIX)) {
+      return environmentProperties.get(ENV_PROPERTIES_PREFIX + value + ENV_PROPERTIES_POSTFIX);
+    }
+    return value;
   }
+
 }

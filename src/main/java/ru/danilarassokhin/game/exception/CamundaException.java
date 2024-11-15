@@ -12,4 +12,8 @@ public class CamundaException extends RuntimeException {
   public CamundaException(Throwable cause) {
     super(cause);
   }
+
+  public CamundaException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }
