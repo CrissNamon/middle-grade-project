@@ -39,10 +39,14 @@ dependencies {
     //MapStruct
     implementation("org.mapstruct:mapstruct:1.6.2")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.6.2")
+    //Camunda
+    implementation("io.camunda:zeebe-client-java:8.6.5")
+    implementation("io.camunda:zeebe-bpmn-model:8.6.5")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.mockito:mockito-core:5.14.1")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.14.1")
 }
 
 tasks.test {

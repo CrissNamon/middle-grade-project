@@ -1,5 +1,6 @@
 package ru.danilarassokhin.game.util;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -28,4 +29,6 @@ public interface PropertiesFactory {
    * @return {@link Properties}
    */
   Properties getAll();
+
+  Optional<List<String>> getAsArray(String name, String delimiter);
 }

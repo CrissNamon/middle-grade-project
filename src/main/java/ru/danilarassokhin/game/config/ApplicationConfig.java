@@ -11,6 +11,7 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 public class ApplicationConfig {
 
   public static final String SERVER_PORT_PROPERTY = "server.port";
+  public static final String PROPERTY_DEFAULT_DELIMITER = ";";
 
   @GameBean
   public PropertiesFactory propertiesFactory() {

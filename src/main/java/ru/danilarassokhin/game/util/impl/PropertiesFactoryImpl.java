@@ -1,5 +1,7 @@
 package ru.danilarassokhin.game.util.impl;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -40,5 +42,11 @@ public class PropertiesFactoryImpl implements PropertiesFactory {
   @Override
   public Properties getAll() {
     return applicationProperties;
+  }
+
+  @Override
+  public Optional<List<String>> getAsArray(String name, String delimiter) {
+    return Optional.ofNullable(applicationProperties.getProperty(name))
+        .map(property -> Arrays.stream(property.split(delimiter)).toList());
   }
 }
