@@ -37,6 +37,7 @@ public class CamundaRepositoryImpl implements CamundaRepository {
   private static final String ACTION_VARIABLE_NAME = "action";
   private static final String ACTIONS_VARIABLE_NAME = "actions";
   private static final Pagination EMPTY_PAGINATION = new Pagination();
+  private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofSeconds(15);
 
   private final ZeebeClient zeebeClient;
   private final CamundaTaskListClient taskListClient;
@@ -90,7 +91,7 @@ public class CamundaRepositoryImpl implements CamundaRepository {
 
   private TaskSearch createTaskSearch(Integer businessKey) {
     return new TaskSearch()
-        .fetchVariable(BUSINESS_KEY_VARIABLE_NAME)
+        .setWithVariables(true)
         .addVariableFilter(createBusinessKeyFilter(businessKey))
         .setState(TaskState.CREATED)
         .setPagination(EMPTY_PAGINATION);
@@ -105,18 +106,14 @@ public class CamundaRepositoryImpl implements CamundaRepository {
 
   private List<CamundaActionEntity> getActionsFromUserTasks(List<Task> tasks) {
     return tasks.stream().flatMap(task -> getActionsFromUserTask(task).stream()
-        .map(action -> new CamundaActionEntity(action, task.getId()))).toList();
+        .map(action -> new CamundaActionEntity(action, task.getId(), task.getFormKey()))).toList();
   }
 
   private List<String> getActionsFromUserTask(Task userTask) {
-    try {
-      return taskListClient.getVariables(userTask.getId(), true).stream()
-          .filter(variable -> variable.getName().equals(ACTIONS_VARIABLE_NAME))
-          .flatMap(variable -> ((List<String>) variable.getValue()).stream())
-          .toList();
-    } catch (TaskListException e) {
-      throw new CamundaException(e);
-    }
+    return userTask.getVariables().stream()
+        .filter(variable -> variable.getName().equals(ACTIONS_VARIABLE_NAME))
+        .flatMap(variable -> ((List<String>) variable.getValue()).stream())
+        .toList();
   }
 
   private void deployAllProcesses() {
@@ -128,7 +125,7 @@ public class CamundaRepositoryImpl implements CamundaRepository {
     try {
       zeebeClient.newDeployResourceCommand()
           .addResourceFromClasspath(resource)
-          .requestTimeout(Duration.ofSeconds(30))
+          .requestTimeout(DEFAULT_REQUEST_TIMEOUT)
           .send()
           .get();
     } catch (InterruptedException | ExecutionException e) {
