@@ -4,6 +4,7 @@ import static ru.danilarassokhin.game.config.CamundaConfig.CAMUNDA_DEPLOYMENTS_P
 import static ru.danilarassokhin.game.config.CamundaConfig.CAMUNDA_PROCESS_ID_PROPERTY;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -14,7 +15,6 @@ import io.camunda.tasklist.dto.Pagination;
 import io.camunda.tasklist.dto.Task;
 import io.camunda.tasklist.dto.TaskSearch;
 import io.camunda.tasklist.dto.TaskState;
-import io.camunda.tasklist.exception.TaskListException;
 import io.camunda.tasklist.generated.model.TaskByVariables;
 import io.camunda.tasklist.generated.model.TaskByVariables.OperatorEnum;
 import io.camunda.zeebe.client.ZeebeClient;
@@ -24,6 +24,8 @@ import ru.danilarassokhin.game.exception.CamundaException;
 import ru.danilarassokhin.game.mapper.CamundaMapper;
 import ru.danilarassokhin.game.repository.CamundaRepository;
 import ru.danilarassokhin.game.util.PropertiesFactory;
+import ru.danilarassokhin.game.util.TypeUtils;
+import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
@@ -73,20 +75,14 @@ public class CamundaRepositoryImpl implements CamundaRepository {
 
   @Override
   public List<CamundaActionEntity> getAvailableActions(Integer businessKey) {
-    try {
-      return getActionsFromUserTasks(taskListClient.getTasks(createTaskSearch(businessKey)).getItems());
-    } catch (TaskListException e) {
-      throw new CamundaException(e);
-    }
+    return ThrowableOptional.sneaky(() -> getActionsFromUserTasks(taskListClient.getTasks(
+        createTaskSearch(businessKey)).getItems()), CamundaException::new);
   }
 
   @Override
   public void doAction(CamundaActionEntity action) {
-    try {
-      taskListClient.completeTask(action.taskId(), Map.of(ACTION_VARIABLE_NAME, action.id()));
-    } catch (TaskListException e) {
-      throw new CamundaException(e);
-    }
+    ThrowableOptional.sneaky(() -> taskListClient.completeTask(
+        action.taskId(), Map.of(ACTION_VARIABLE_NAME, action.id())), CamundaException::new);
   }
 
   private TaskSearch createTaskSearch(Integer businessKey) {
@@ -112,13 +108,13 @@ public class CamundaRepositoryImpl implements CamundaRepository {
   private List<String> getActionsFromUserTask(Task userTask) {
     return userTask.getVariables().stream()
         .filter(variable -> variable.getName().equals(ACTIONS_VARIABLE_NAME))
-        .flatMap(variable -> ((List<String>) variable.getValue()).stream())
+        .flatMap(variable -> TypeUtils.<List<String>>safeCast(variable.getValue())
+            .orElseGet(ArrayList::new).stream())
         .toList();
   }
 
   private void deployAllProcesses() {
-    propertiesFactory.getAsString(CAMUNDA_DEPLOYMENTS_PROPERTY)
-        .ifPresent(this::deployProcess);
+    propertiesFactory.getAsString(CAMUNDA_DEPLOYMENTS_PROPERTY).ifPresent(this::deployProcess);
   }
 
   private void deployProcess(String resource) {

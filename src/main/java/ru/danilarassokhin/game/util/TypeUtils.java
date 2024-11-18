@@ -1,5 +1,7 @@
 package ru.danilarassokhin.game.util;
 
+import java.util.Optional;
+
 /**
  * Utils for types.
  */
@@ -32,5 +34,14 @@ public class TypeUtils {
   @SuppressWarnings("unchecked")
   public static <T> T cast(Object object) {
     return (T) object;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> Optional<T> safeCast(Object object) {
+    try {
+      return Optional.ofNullable((T) object);
+    } catch (ClassCastException e) {
+      return Optional.empty();
+    }
   }
 }
