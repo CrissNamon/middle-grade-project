@@ -23,8 +23,3 @@ Main:
 - Camunda ✅
 - Fault tolerance (Circuit breaker, failover caching) ❌
 - CI/CD ❌
-
-Additional:
-
-- NoSQL ❌
-- JMS ❌
