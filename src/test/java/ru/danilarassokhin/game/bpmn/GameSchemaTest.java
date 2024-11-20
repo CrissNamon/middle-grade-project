@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.danilarassokhin.game.entity.camunda.CamundaAction;
 import ru.danilarassokhin.game.entity.camunda.CamundaSignal;
+import ru.danilarassokhin.game.entity.camunda.CamundaVariables;
 
 public class GameSchemaTest extends BpmnSchemaTestBase {
 
@@ -16,9 +17,8 @@ public class GameSchemaTest extends BpmnSchemaTestBase {
   private static final String DUNGEON_SUBPROCESS = "Activity_0f6n6yi";
   private static final String ATTACK_JOB_TYPE = "attack";
   private static final Integer LEVEL_NUMBER = 1;
-  private static final String LEVEL_VARIABLE_NAME = "level";
   private static final ImmutablePair<String, Object> LEVEL_VARIABLE =
-      ImmutablePair.of(LEVEL_VARIABLE_NAME, LEVEL_NUMBER.toString());
+      ImmutablePair.of(CamundaVariables.LEVEL.getCamundaVariableName(), LEVEL_NUMBER.toString());
 
   @Test
   @DisplayName("it should wait at main menu after start")
