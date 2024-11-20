@@ -20,7 +20,7 @@ Main:
 
 - Http server based on Netty ✅
 - JDBC (transactions, isolation levels, advisory locks) ✅
-- Camunda ❌
+- Camunda ✅
 - Fault tolerance (Circuit breaker, failover caching) ❌
 - CI/CD ❌
 
