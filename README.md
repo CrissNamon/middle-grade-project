@@ -13,6 +13,7 @@ Simple game http server based on Netty for job attestation on Middle Java grade.
 - Hibernate Validator
 - JDBC
 - MapStruct
+- Camunda Platform 8
 
 ## Roadmap
 
