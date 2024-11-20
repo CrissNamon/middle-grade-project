@@ -1,10 +1,10 @@
 package ru.danilarassokhin.game.repository;
 
 import java.util.List;
-import java.util.concurrent.Future;
+import java.util.Map;
 
-import ru.danilarassokhin.game.entity.CamundaActionEntity;
-import ru.danilarassokhin.game.entity.CamundaProcessEntity;
+import ru.danilarassokhin.game.entity.camunda.CamundaActionEntity;
+import ru.danilarassokhin.game.entity.camunda.CamundaProcessEntity;
 
 /**
  * Repository for Camunda operations.
@@ -13,10 +13,11 @@ public interface CamundaRepository {
 
   /**
    * Creates new process instance with given business key.
-   * @param businessKey Unique identifier of the process
-   * @return {@link CamundaProcessEntity} future
+   * @param processId ID of bpmn process
+   * @param variables Start variables for this process
+   * @return {@link CamundaProcessEntity}
    */
-  Future<CamundaProcessEntity> createProcess(Integer businessKey);
+  CamundaProcessEntity createProcess(String processId, Map<String, Object> variables);
 
   /**
    * Gets available actions in process instance.
@@ -30,5 +31,17 @@ public interface CamundaRepository {
    * @param action {@link CamundaActionEntity}
    */
   void doAction(CamundaActionEntity action);
+
+  /**
+   * Deploys new process.
+   * @param classpathResource Classpath resource with bpmn schema.
+   */
+  void deployProcess(String classpathResource);
+
+  /**
+   * Sends signal to Camunda.
+   * @param signalId ID of signal
+   */
+  void broadcastSignal(String signalId);
 
 }

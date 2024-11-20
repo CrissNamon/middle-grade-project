@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.entity.DamageLogEntity;
 import ru.danilarassokhin.game.entity.DungeonEntity;
 import ru.danilarassokhin.game.entity.PlayerEntity;
+import ru.danilarassokhin.game.entity.camunda.CamundaSignal;
 import ru.danilarassokhin.game.entity.data.DungeonState;
 import ru.danilarassokhin.game.exception.ApplicationException;
 import ru.danilarassokhin.game.exception.DataSourceException;
@@ -18,6 +19,7 @@ import ru.danilarassokhin.game.model.dto.CreateDamageLogDto;
 import ru.danilarassokhin.game.model.dto.DungeonDto;
 import ru.danilarassokhin.game.model.dto.CreateDungeonDto;
 import ru.danilarassokhin.game.model.dto.DungeonStateDto;
+import ru.danilarassokhin.game.repository.CamundaRepository;
 import ru.danilarassokhin.game.repository.DamageLogRepository;
 import ru.danilarassokhin.game.repository.DungeonRepository;
 import ru.danilarassokhin.game.repository.PlayerRepository;
@@ -40,6 +42,7 @@ public class DungeonServiceImpl implements DungeonService {
   private final DungeonRepository dungeonRepository;
   private final DamageLogRepository damageLogRepository;
   private final PlayerRepository playerRepository;
+  private final CamundaRepository camundaRepository;
 
   @Override
   public DungeonDto save(CreateDungeonDto createDungeonDto) {
@@ -78,7 +81,7 @@ public class DungeonServiceImpl implements DungeonService {
         var currentDamage = dealDamage(ctx, createDamageLogDto, dungeon, newDamage);
         playerRepository.update(ctx, player.addMoney(calculateMoney(player, dungeon)));
         if (currentDamage + newDamage >= dungeon.code().getHealth()) {
-          return reviveDungeon(ctx, createDamageLogDto, dungeon);
+          return reviveDungeon(ctx, createDamageLogDto, dungeon, player.getLevel());
         }
         return new DungeonStateDto(DungeonState.ALIVE, dungeon.code());
       });
@@ -87,7 +90,12 @@ public class DungeonServiceImpl implements DungeonService {
     }
   }
 
-  private Long dealDamage(TransactionContext ctx, CreateDamageLogDto createDamageLogDto, DungeonEntity dungeon, Integer newDamage) {
+  private Long dealDamage(
+      TransactionContext ctx,
+      CreateDamageLogDto createDamageLogDto,
+      DungeonEntity dungeon,
+      Integer newDamage
+  ) {
     var currentDamage = damageLogRepository.countDamage(ctx, createDamageLogDto.dungeonId());
     if (currentDamage < dungeon.code().getHealth()) {
       damageLogRepository.save(ctx, new DamageLogEntity(createDamageLogDto.playerId(),
@@ -96,11 +104,16 @@ public class DungeonServiceImpl implements DungeonService {
     return currentDamage;
   }
 
-  private DungeonStateDto reviveDungeon(TransactionContext ctx, CreateDamageLogDto createDamageLogDto, DungeonEntity dungeon) {
-    var activePlayers = damageLogRepository.findPlayersForActiveDungeon(ctx,
-      createDamageLogDto.dungeonId());
+  private DungeonStateDto reviveDungeon(
+      TransactionContext ctx,
+      CreateDamageLogDto createDamageLogDto,
+      DungeonEntity dungeon,
+      Integer level
+  ) {
+    var activePlayers = damageLogRepository.findPlayersForActiveDungeon(ctx, createDamageLogDto.dungeonId());
     playerRepository.updateLevelsForIds(ctx, activePlayers);
     damageLogRepository.revive(ctx, createDamageLogDto.dungeonId());
+    camundaRepository.broadcastSignal(CamundaSignal.s_dungeon_completed.create(level));
     return new DungeonStateDto(DungeonState.COMPLETED, dungeon.code());
   }
 

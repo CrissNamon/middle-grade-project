@@ -1,14 +1,10 @@
 package ru.danilarassokhin.game.repository.impl;
 
-import static ru.danilarassokhin.game.config.CamundaConfig.CAMUNDA_DEPLOYMENTS_PROPERTY;
-import static ru.danilarassokhin.game.config.CamundaConfig.CAMUNDA_PROCESS_ID_PROPERTY;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import io.camunda.tasklist.CamundaTaskListClient;
 import io.camunda.tasklist.dto.Pagination;
@@ -18,12 +14,12 @@ import io.camunda.tasklist.dto.TaskState;
 import io.camunda.tasklist.generated.model.TaskByVariables;
 import io.camunda.tasklist.generated.model.TaskByVariables.OperatorEnum;
 import io.camunda.zeebe.client.ZeebeClient;
-import ru.danilarassokhin.game.entity.CamundaActionEntity;
-import ru.danilarassokhin.game.entity.CamundaProcessEntity;
+import lombok.RequiredArgsConstructor;
+import ru.danilarassokhin.game.entity.camunda.CamundaActionEntity;
+import ru.danilarassokhin.game.entity.camunda.CamundaProcessEntity;
 import ru.danilarassokhin.game.exception.CamundaException;
 import ru.danilarassokhin.game.mapper.CamundaMapper;
 import ru.danilarassokhin.game.repository.CamundaRepository;
-import ru.danilarassokhin.game.util.PropertiesFactory;
 import ru.danilarassokhin.game.util.TypeUtils;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.annotation.Autofill;
@@ -33,6 +29,7 @@ import tech.hiddenproject.progressive.annotation.GameBean;
  * Implementation of {@link CamundaRepository} based on UserTasks.
  */
 @GameBean
+@RequiredArgsConstructor(onConstructor_ = {@Autofill})
 public class CamundaRepositoryImpl implements CamundaRepository {
 
   private static final String BUSINESS_KEY_VARIABLE_NAME = "businessKey";
@@ -43,34 +40,18 @@ public class CamundaRepositoryImpl implements CamundaRepository {
 
   private final ZeebeClient zeebeClient;
   private final CamundaTaskListClient taskListClient;
-  private final PropertiesFactory propertiesFactory;
   private final CamundaMapper camundaMapper;
-  private final String processId;
-
-  @Autofill
-  public CamundaRepositoryImpl(
-      ZeebeClient zeebeClient,
-      PropertiesFactory propertiesFactory,
-      CamundaTaskListClient taskListClient,
-      CamundaMapper camundaMapper
-  ) {
-    this.zeebeClient = zeebeClient;
-    this.propertiesFactory = propertiesFactory;
-    this.taskListClient = taskListClient;
-    this.camundaMapper = camundaMapper;
-    this.processId = propertiesFactory.getAsString(CAMUNDA_PROCESS_ID_PROPERTY).orElseThrow();
-    deployAllProcesses();
-  }
 
   @Override
-  public Future<CamundaProcessEntity> createProcess(Integer businessKey) {
+  public CamundaProcessEntity createProcess(String processId, Map<String, Object> variables) {
     return zeebeClient.newCreateInstanceCommand()
         .bpmnProcessId(processId)
         .latestVersion()
-        .variable(BUSINESS_KEY_VARIABLE_NAME, businessKey)
+        .variables(variables)
         .send()
         .thenApply(camundaMapper::processInstanceEventToEntity)
-        .toCompletableFuture();
+        .toCompletableFuture()
+        .join();
   }
 
   @Override
@@ -83,6 +64,31 @@ public class CamundaRepositoryImpl implements CamundaRepository {
   public void doAction(CamundaActionEntity action) {
     ThrowableOptional.sneaky(() -> taskListClient.completeTask(
         action.taskId(), Map.of(ACTION_VARIABLE_NAME, action.id())), CamundaException::new);
+  }
+
+  @Override
+  public void deployProcess(String classpathResource) {
+    try {
+      zeebeClient.newDeployResourceCommand()
+          .addResourceFromClasspath(classpathResource)
+          .requestTimeout(DEFAULT_REQUEST_TIMEOUT)
+          .send()
+          .get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new CamundaException("Error occurred during process deployment", e);
+    }
+  }
+
+  @Override
+  public void broadcastSignal(String signalId) {
+    try {
+      zeebeClient.newBroadcastSignalCommand()
+          .signalName(signalId)
+          .send()
+          .get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new CamundaException("Error occurred during signal broadcasting", e);
+    }
   }
 
   private TaskSearch createTaskSearch(Integer businessKey) {
@@ -112,21 +118,4 @@ public class CamundaRepositoryImpl implements CamundaRepository {
             .orElseGet(ArrayList::new).stream())
         .toList();
   }
-
-  private void deployAllProcesses() {
-    propertiesFactory.getAsString(CAMUNDA_DEPLOYMENTS_PROPERTY).ifPresent(this::deployProcess);
-  }
-
-  private void deployProcess(String resource) {
-    try {
-      zeebeClient.newDeployResourceCommand()
-          .addResourceFromClasspath(resource)
-          .requestTimeout(DEFAULT_REQUEST_TIMEOUT)
-          .send()
-          .get();
-    } catch (InterruptedException | ExecutionException e) {
-      throw new CamundaException("Error occurred during process deployment", e);
-    }
-  }
-
 }

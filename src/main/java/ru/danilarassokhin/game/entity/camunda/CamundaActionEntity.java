@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.entity;
+package ru.danilarassokhin.game.entity.camunda;
 
 /**
  * Represents action in Camunda.
