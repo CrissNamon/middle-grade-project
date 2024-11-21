@@ -10,6 +10,8 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 @Configuration
 public class ApplicationConfig {
 
+  public static final String SHUTDOWN_EVENT = "shutdown";
+
   @GameBean
   public PropertiesFactory propertiesFactory() {
     return new PropertiesFactoryImpl();

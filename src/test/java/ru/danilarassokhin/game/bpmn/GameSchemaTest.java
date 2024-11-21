@@ -6,16 +6,15 @@ import org.junit.jupiter.api.Test;
 import ru.danilarassokhin.game.entity.camunda.CamundaAction;
 import ru.danilarassokhin.game.entity.camunda.CamundaSignal;
 import ru.danilarassokhin.game.entity.camunda.CamundaVariables;
+import ru.danilarassokhin.game.worker.jobs.AttackCamundaWorker;
 
 public class GameSchemaTest extends BpmnSchemaTestBase {
 
   private static final String FIRST_USER_TASK = "Activity_17jyf9v";
   private static final String RETURN_TO_MENU_FROM_INVENTORY_TASK = "Activity_1ihhazn";
   private static final String IN_DUNGEON_TASK = "Activity_08s7q7p";
-  private static final String ATTACK_DELEGATE = "Activity_0leqp75";
   private static final String GET_DUNGEON_DELEGATE = "Activity_1uocarl";
   private static final String DUNGEON_SUBPROCESS = "Activity_0f6n6yi";
-  private static final String ATTACK_JOB_TYPE = "attack";
   private static final Integer LEVEL_NUMBER = 1;
   private static final ImmutablePair<String, Object> LEVEL_VARIABLE =
       ImmutablePair.of(CamundaVariables.LEVEL.getCamundaVariableName(), LEVEL_NUMBER.toString());
@@ -80,12 +79,12 @@ public class GameSchemaTest extends BpmnSchemaTestBase {
   @DisplayName("User do action m_attack in dungeon, process call attack worker and stays in dungeon")
   public void itShouldAttackFromDungeon() {
     bpmnProcess(processAssertions -> {
+      processAssertions.mockWorker(AttackCamundaWorker.class);
       processAssertions.startProcessBefore(DUNGEON_SUBPROCESS, LEVEL_VARIABLE);
       processAssertions.assertStarted();
       processAssertions.assertWaitingAtExactly(IN_DUNGEON_TASK);
       processAssertions.doAction(CamundaAction.m_attack);
-      processAssertions.assertWaitingAtExactly(ATTACK_DELEGATE);
-      processAssertions.executeJob(ATTACK_JOB_TYPE);
+      processAssertions.assertExecuted(AttackCamundaWorker.class);
       processAssertions.assertWaitingAtExactly(IN_DUNGEON_TASK);
     });
   }

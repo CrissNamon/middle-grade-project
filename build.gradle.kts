@@ -47,7 +47,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("io.camunda:zeebe-process-test-extension:8.6.5")
     testImplementation("io.camunda:zeebe-process-test-assertions:8.6.5")
-
+    testImplementation("org.mockito:mockito-core:5.14.2")
 }
 
 tasks.test {
