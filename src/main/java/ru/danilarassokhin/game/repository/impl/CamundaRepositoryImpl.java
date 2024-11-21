@@ -44,14 +44,18 @@ public class CamundaRepositoryImpl implements CamundaRepository {
 
   @Override
   public CamundaProcessEntity createProcess(String processId, Map<String, Object> variables) {
-    return zeebeClient.newCreateInstanceCommand()
-        .bpmnProcessId(processId)
-        .latestVersion()
-        .variables(variables)
-        .send()
-        .thenApply(camundaMapper::processInstanceEventToEntity)
-        .toCompletableFuture()
-        .join();
+    try {
+      return zeebeClient.newCreateInstanceCommand()
+          .bpmnProcessId(processId)
+          .latestVersion()
+          .variables(variables)
+          .send()
+          .thenApply(camundaMapper::processInstanceEventToEntity)
+          .toCompletableFuture()
+          .get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new CamundaException(e);
+    }
   }
 
   @Override
