@@ -9,8 +9,10 @@ import ru.danilarassokhin.game.mapper.PlayerMapper;
 import ru.danilarassokhin.game.model.dto.CreatePlayerDto;
 import ru.danilarassokhin.game.model.dto.PlayerDto;
 import ru.danilarassokhin.game.repository.PlayerRepository;
+import ru.danilarassokhin.game.service.CamundaService;
 import ru.danilarassokhin.game.service.PlayerService;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
+import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
@@ -21,12 +23,15 @@ public class PlayerServiceImpl implements PlayerService {
   private final TransactionManager transactionManager;
   private final PlayerRepository playerRepository;
   private final PlayerMapper playerMapper;
+  private final CamundaService camundaService;
 
   @Override
   public PlayerDto create(CreatePlayerDto createPlayerDto) {
     Optional<PlayerEntity> createdPlayer = transactionManager.fetchInTransaction(ctx -> {
       if (!playerRepository.existsByName(ctx, createPlayerDto.name())) {
         var newPlayerId = playerRepository.save(ctx, playerMapper.createPlayerDtoToEntity(createPlayerDto));
+        ThrowableOptional.sneaky(() -> camundaService.createProcess(newPlayerId),
+                                 e -> new ApplicationException("Exception occurred during player creation"));
         return playerRepository.findById(ctx, newPlayerId);
       }
       throw new ApplicationException("Player with name " + createPlayerDto.name() + " already exists");

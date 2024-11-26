@@ -31,7 +31,11 @@ public class HttpConfig {
   }
 
   @GameBean(order = 2)
-  public HttpHandlerProcessor httpHandlerProcessor(HttpBodyMapper httpBodyMapper, Validator validator, HttpExceptionHandler httpExceptionHandler) {
+  public HttpHandlerProcessor httpHandlerProcessor(
+      HttpBodyMapper httpBodyMapper,
+      Validator validator,
+      HttpExceptionHandler httpExceptionHandler
+  ) {
     return new HttpHandlerProcessorImpl(httpBodyMapper, validator, httpExceptionHandler);
   }
 

@@ -5,12 +5,14 @@ import java.util.Set;
 
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import ru.danilarassokhin.game.config.ApplicationConfig;
 import ru.danilarassokhin.game.security.LoggerHttpFilter;
 import ru.danilarassokhin.game.server.netty.HttpServerInitializer;
 import ru.danilarassokhin.game.server.netty.NettyServer;
 import ru.danilarassokhin.game.util.PropertiesFactory;
 import ru.danilarassokhin.game.util.PropertyNames;
 import tech.hiddenproject.progressive.BasicComponentManager;
+import tech.hiddenproject.progressive.basic.manager.BasicGamePublisher;
 
 public class GameServer {
 
@@ -28,6 +30,8 @@ public class GameServer {
     var port = propertiesFactory.getAsInt(PropertyNames.SERVER_PORT).orElse(DEFAULT_PORT);
     var server = new NettyServer(port, loggingHandler, serverInitializer);
     server.start();
+
+    BasicGamePublisher.getInstance().sendTo(ApplicationConfig.SHUTDOWN_EVENT, null);
   }
 
 }
