@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.entity;
+package ru.danilarassokhin.game.model.dto;
 
 /**
  * Represents action in Camunda.
@@ -6,4 +6,4 @@ package ru.danilarassokhin.game.entity;
  * @param taskId Unique task id in Camunda
  * @param formKey ID of UI activity
  */
-public record CamundaActionEntity(String id, String taskId, String formKey) {}
+public record CamundaActionDto(String id, String taskId, String formKey) {}

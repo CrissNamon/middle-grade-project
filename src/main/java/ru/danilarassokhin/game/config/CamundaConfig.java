@@ -13,7 +13,12 @@ import io.camunda.tasklist.dto.TaskSearch;
 import io.camunda.tasklist.exception.TaskListException;
 import io.camunda.zeebe.client.ZeebeClient;
 import ru.danilarassokhin.game.exception.CamundaException;
+import ru.danilarassokhin.game.service.DungeonService;
+import ru.danilarassokhin.game.service.PlayerService;
+import ru.danilarassokhin.game.worker.CamundaWorkerContainer;
 import ru.danilarassokhin.game.util.PropertiesFactory;
+import ru.danilarassokhin.game.worker.jobs.AttackCamundaWorker;
+import ru.danilarassokhin.game.worker.jobs.GetDungeonWorker;
 import tech.hiddenproject.progressive.annotation.Configuration;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
@@ -26,7 +31,7 @@ public class CamundaConfig {
   public static final String CAMUNDA_TASK_LIST_PASSWORD_PROPERTY = "camunda.tasklist.password";
   public static final String CAMUNDA_PROCESS_ID_PROPERTY = "camunda.process-id";
 
-  @GameBean
+  @GameBean(order = 1)
   public ZeebeClient zeebeClient() {
     return ZeebeClient.newClientBuilder().usePlaintext().build();
   }
@@ -46,7 +51,7 @@ public class CamundaConfig {
     }
   }
 
-  @GameBean
+  @GameBean(order = 2)
   public CamundaTaskListClient camundaTaskListClient(Authentication authentication, PropertiesFactory propertiesFactory) {
     try {
       var client = CamundaTaskListClient.builder()
@@ -60,6 +65,25 @@ public class CamundaConfig {
     } catch (TaskListException e) {
       throw new CamundaException("Error while bootstrapping tasklist client", e);
     }
+  }
+
+  @GameBean(order = 3)
+  public AttackCamundaWorker attackCamundaWorker(DungeonService dungeonService, PlayerService playerService) {
+    return new AttackCamundaWorker(dungeonService, playerService);
+  }
+
+  @GameBean(order = 3)
+  public GetDungeonWorker getDungeonWorker(PlayerService playerService) {
+    return new GetDungeonWorker(playerService);
+  }
+
+  @GameBean(order = 4)
+  public CamundaWorkerContainer camundaWorkerFactory(
+      ZeebeClient zeebeClient,
+      AttackCamundaWorker attackCamundaWorker,
+      GetDungeonWorker getDungeonWorker
+  ) {
+    return new CamundaWorkerContainer(zeebeClient, attackCamundaWorker, getDungeonWorker);
   }
 
 }
