@@ -3,7 +3,6 @@ package ru.danilarassokhin.game.repository.impl;
 import java.util.Optional;
 
 import ru.danilarassokhin.game.entity.DungeonEntity;
-import ru.danilarassokhin.game.entity.data.Dungeon;
 import ru.danilarassokhin.game.factory.BloomFilterFactory;
 import ru.danilarassokhin.game.model.resilience.BloomFilterWithPresence;
 import ru.danilarassokhin.game.repository.DungeonRepository;
@@ -22,6 +21,8 @@ public class DungeonRepositoryImpl implements DungeonRepository {
       String.format("SELECT EXISTS(SELECT * FROM %s WHERE id = ?);", DungeonEntity.TABLE_NAME);
   private static final String EXISTS_BY_LEVEL_AND_CODE =
       String.format("SELECT EXISTS(SELECT * FROM %s WHERE level = ? AND code = ?);", DungeonEntity.TABLE_NAME);
+  private static final String FIND_BY_LEVEL_QUERY =
+      String.format("SELECT * FROM %s WHERE level = ?;", DungeonEntity.TABLE_NAME);
 
   private final BloomFilterWithPresence<Integer> dungeonIdsBloomFilter;
 
@@ -59,7 +60,12 @@ public class DungeonRepositoryImpl implements DungeonRepository {
   }
 
   @Override
-  public boolean existsByLevelAndCode(TransactionContext ctx, Integer level, Dungeon code) {
+  public boolean existsByLevelAndCode(TransactionContext ctx, Integer level, String code) {
     return ctx.query(EXISTS_BY_LEVEL_AND_CODE, level, code).fetchOne(Boolean.class);
+  }
+
+  @Override
+  public Optional<DungeonEntity> findByLevel(TransactionContext ctx, Integer level) {
+    return Optional.ofNullable(ctx.query(FIND_BY_LEVEL_QUERY, level).fetchOne(DungeonEntity.class));
   }
 }

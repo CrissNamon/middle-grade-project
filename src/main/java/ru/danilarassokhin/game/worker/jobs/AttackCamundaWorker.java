@@ -29,7 +29,8 @@ public class AttackCamundaWorker implements CamundaJobWorker {
       var businessKey = job.getVariable(CamundaVariables.BUSINESS_KEY.getCamundaVariableName());
       var playerId = Integer.valueOf(businessKey.toString());
       var player = playerService.getById(playerId);
-      dungeonService.attack(new CreateDamageLogDto(playerId, player.level()));
+      var dungeon = dungeonService.findByLevel(player.level());
+      dungeonService.attack(new CreateDamageLogDto(playerId, dungeon.id()));
       client.newCompleteCommand(job).send();
     } catch (Throwable t) {
       log.error("Error during attack", t);

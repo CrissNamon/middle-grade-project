@@ -1,10 +1,8 @@
 package ru.danilarassokhin.game.model.dto;
 
-import ru.danilarassokhin.game.entity.data.Dungeon;
-
 /**
  * DTO for creation of new dungeon entity.
  * @param level Dungeon level
- * @param code {@link Dungeon}
+ * @param code Dungeon code
  */
-public record CreateDungeonDto(Integer level, Dungeon code) {}
+public record CreateDungeonDto(Integer level, String code) {}
