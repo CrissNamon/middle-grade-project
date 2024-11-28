@@ -18,9 +18,8 @@ import tech.hiddenproject.progressive.annotation.Qualifier;
 @Slf4j
 public class CatalogueDungeonRepositoryImpl implements CatalogueDungeonRepository {
 
-  private static final String FIND_BY_CODE_QUERY = String.format("""
-                                                   SELECT * FROM %s WHERE code = ?;
-                                                   """, CatalogueDungeonEntity.TABLE_NAME);
+  private static final String FIND_BY_CODE_QUERY =
+      String.format("SELECT * FROM %s WHERE code = ?;", CatalogueDungeonEntity.TABLE_NAME);
 
   @Qualifier("dungeonCatalogueCache")
   private final Cache<String, CatalogueDungeonEntity> dungeonsByCodeCache;
