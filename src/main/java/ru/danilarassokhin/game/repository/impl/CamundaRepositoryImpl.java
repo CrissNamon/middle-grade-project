@@ -17,7 +17,6 @@ import io.camunda.tasklist.generated.model.TaskByVariables.OperatorEnum;
 import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.api.command.ClientStatusException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
-import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.entity.camunda.CamundaActionEntity;
 import ru.danilarassokhin.game.entity.camunda.CamundaProcessEntity;
 import ru.danilarassokhin.game.exception.CamundaException;
@@ -32,7 +31,6 @@ import tech.hiddenproject.progressive.annotation.GameBean;
  * Implementation of {@link CamundaRepository} based on UserTasks.
  */
 @GameBean
-@RequiredArgsConstructor(onConstructor_ = {@Autofill})
 public class CamundaRepositoryImpl implements CamundaRepository {
 
   private static final String BUSINESS_KEY_VARIABLE_NAME = "businessKey";
@@ -44,12 +42,24 @@ public class CamundaRepositoryImpl implements CamundaRepository {
   private final ZeebeClient zeebeClient;
   private final CamundaTaskListClient taskListClient;
   private final CamundaMapper camundaMapper;
-  private final CircuitBreakerFactory circuitBreakerFactory;
-  private final CircuitBreaker zeebeCircuitBreaker = circuitBreakerFactory.create(ZeebeClient.class.getCanonicalName(), ClientStatusException.class);
-  private final CircuitBreaker taskListCircuitBreaker = circuitBreakerFactory.create(CamundaTaskListClient.class.getCanonicalName(), TaskListException.class);
+  private final CircuitBreaker zeebeCircuitBreaker;
+  private final CircuitBreaker taskListCircuitBreaker;
+
+  @Autofill
+  public CamundaRepositoryImpl(
+      ZeebeClient zeebeClient,
+      CamundaTaskListClient taskListClient,
+      CamundaMapper camundaMapper,
+      CircuitBreakerFactory circuitBreakerFactory
+  ) {
+    this.zeebeClient = zeebeClient;
+    this.taskListClient = taskListClient;
+    this.camundaMapper = camundaMapper;
+    this.zeebeCircuitBreaker = circuitBreakerFactory.create(ZeebeClient.class.getCanonicalName(), ClientStatusException.class);
+    this.taskListCircuitBreaker = circuitBreakerFactory.create(CamundaTaskListClient.class.getCanonicalName(), TaskListException.class);
+  }
 
   @Override
-  @SuppressWarnings("unchecked")
   public CamundaProcessEntity createProcess(String processId, Map<String, Object> variables) {
     try {
       return zeebeCircuitBreaker.executeSupplier(() -> {

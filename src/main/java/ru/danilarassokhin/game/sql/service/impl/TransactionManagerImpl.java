@@ -102,8 +102,7 @@ public class TransactionManagerImpl implements TransactionManager {
   public <T> T fetchInTransaction(int isolationLevel, QueryFunction<TransactionContext, T> body) {
     return startTransaction(connection -> {
       connection.setTransactionIsolation(isolationLevel);
-      var transactionTemplate = new TransactionContextImpl(connection, jdbcMapperService);
-      transactionTemplate.useSchema(defaultSchemaName);
+      var transactionTemplate = new TransactionContextImpl(connection, jdbcMapperService, defaultSchemaName);
       return body.apply(transactionTemplate);
     });
   }

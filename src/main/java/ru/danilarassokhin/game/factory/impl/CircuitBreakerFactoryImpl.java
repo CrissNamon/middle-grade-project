@@ -39,7 +39,7 @@ public class CircuitBreakerFactoryImpl implements CircuitBreakerFactory {
         .failureRateThreshold(50)
         .waitDurationInOpenState(Duration.ofMillis(1000))
         .permittedNumberOfCallsInHalfOpenState(2)
-        .slidingWindowSize(2)
+        .slidingWindowSize(100)
         .recordExceptions(recordExceptions)
         .build();
   }
