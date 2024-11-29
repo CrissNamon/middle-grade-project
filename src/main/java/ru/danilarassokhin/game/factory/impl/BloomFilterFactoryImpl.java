@@ -7,6 +7,7 @@ import java.util.Map;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.Funnels;
+import ru.danilarassokhin.game.exception.ApplicationException;
 import ru.danilarassokhin.game.factory.BloomFilterFactory;
 import ru.danilarassokhin.game.model.resilience.BloomFilterWithPresence;
 import tech.hiddenproject.progressive.annotation.GameBean;
@@ -39,6 +40,6 @@ public class BloomFilterFactoryImpl implements BloomFilterFactory {
     if (elementsType.equals(Integer.class)) {
       return Funnels.integerFunnel();
     }
-    throw new RuntimeException("");
+    throw new ApplicationException("Funnel not found for type: " + elementsType);
   }
 }
