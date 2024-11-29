@@ -45,7 +45,7 @@ public class PlayerItemRepositoryImpl implements PlayerItemRepository {
   @Override
   public boolean existsById(TransactionContext ctx, Integer id) {
     return switch (playerItemIdsBloomFilter.mightContain(id)) {
-      case UNKNOWN -> {
+      case UNKNOWN, MIGHT_CONTAINS -> {
         var existsById = ctx.query(EXISTS_BY_ID_QUERY, id).fetchOne(Boolean.class);
         playerItemIdsBloomFilter.acknowledge(id);
         if (existsById) {
@@ -54,7 +54,6 @@ public class PlayerItemRepositoryImpl implements PlayerItemRepository {
         yield existsById;
       }
       case NOT_CONTAINS -> false;
-      case MIGHT_CONTAINS -> true;
     };
   }
 }

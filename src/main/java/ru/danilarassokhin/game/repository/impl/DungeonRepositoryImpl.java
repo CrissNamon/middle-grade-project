@@ -1,5 +1,6 @@
 package ru.danilarassokhin.game.repository.impl;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import ru.danilarassokhin.game.entity.DungeonEntity;
@@ -40,13 +41,19 @@ public class DungeonRepositoryImpl implements DungeonRepository {
 
   @Override
   public Optional<DungeonEntity> findById(TransactionContext ctx, Integer id) {
-    return Optional.ofNullable(ctx.query(FIND_BY_ID_QUERY, id).fetchOne(DungeonEntity.class));
+    var result = ctx.query(FIND_BY_ID_QUERY, id).fetchOne(DungeonEntity.class);
+    if (Objects.nonNull(result)) {
+      dungeonIdsBloomFilter.put(result.id());
+    } else {
+      dungeonIdsBloomFilter.acknowledge(id);
+    }
+    return Optional.ofNullable(result);
   }
 
   @Override
   public boolean existsById(TransactionContext ctx, Integer id) {
     return switch (dungeonIdsBloomFilter.mightContain(id)) {
-      case UNKNOWN -> {
+      case UNKNOWN, MIGHT_CONTAINS -> {
         var existsById = ctx.query(EXISTS_BY_ID, id).fetchOne(Boolean.class);
         dungeonIdsBloomFilter.acknowledge(id);
         if (existsById) {
@@ -55,7 +62,6 @@ public class DungeonRepositoryImpl implements DungeonRepository {
         yield existsById;
       }
       case NOT_CONTAINS -> false;
-      case MIGHT_CONTAINS -> true;
     };
   }
 

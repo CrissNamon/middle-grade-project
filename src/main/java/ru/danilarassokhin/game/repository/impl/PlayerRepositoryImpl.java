@@ -48,13 +48,14 @@ public class PlayerRepositoryImpl implements PlayerRepository {
 
   @Override
   public Optional<PlayerEntity> findById(TransactionContext ctx, Integer id) {
+    playerIdsBloomFilter.acknowledge(id);
     return Optional.ofNullable(ctx.query(FIND_BY_ID_QUERY, id).fetchOne(PlayerEntity.class));
   }
 
   @Override
   public boolean existsById(TransactionContext ctx, Integer id) {
     return switch (playerIdsBloomFilter.mightContain(id)) {
-      case UNKNOWN -> {
+      case UNKNOWN, MIGHT_CONTAINS -> {
         var existsById = ctx.query(EXISTS_BY_ID_QUERY, id).fetchOne(Boolean.class);
         playerIdsBloomFilter.acknowledge(id);
         if (existsById) {
@@ -63,7 +64,6 @@ public class PlayerRepositoryImpl implements PlayerRepository {
         yield existsById;
       }
       case NOT_CONTAINS -> false;
-      case MIGHT_CONTAINS -> true;
     };
   }
 

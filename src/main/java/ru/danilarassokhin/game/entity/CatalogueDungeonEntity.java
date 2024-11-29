@@ -3,6 +3,12 @@ package ru.danilarassokhin.game.entity;
 import ru.danilarassokhin.game.sql.annotation.Column;
 import ru.danilarassokhin.game.sql.annotation.Entity;
 
+/**
+ * Dungeon data.
+ * @param id Unique ID
+ * @param code Unique code
+ * @param health Initial health
+ */
 @Entity(CatalogueDungeonEntity.TABLE_NAME)
 public record CatalogueDungeonEntity(
     @Column("id") Integer id,
