@@ -11,11 +11,13 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 @Configuration
 public class CacheConfig {
 
-  @GameBean(name = "dungeonCatalogueCache")
+  public static final String CACHE_NAME_DUNGEON_CATALOGUE = "dungeonCatalogueCache";
+
+  @GameBean(name = CACHE_NAME_DUNGEON_CATALOGUE)
   public Cache<String, CatalogueDungeonEntity> dungeonCatalogueCache() {
     var provider = Caching.getCachingProvider();
     var manager = provider.getCacheManager();
-    return manager.createCache("dungeonCatalogueCache", new MutableConfiguration<>());
+    return manager.createCache(CACHE_NAME_DUNGEON_CATALOGUE, new MutableConfiguration<>());
   }
 
 }
