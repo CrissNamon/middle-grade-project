@@ -6,7 +6,6 @@ plugins {
 
 application {
     mainClass = "ru.danilarassokhin.game.GameApplication"
-    applicationDefaultJvmArgs = setOf("--enable-preview")
 }
 
 group = "ru.danilarassokhin"
@@ -58,4 +57,9 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile::class).all {
+    options.compilerArgs.add("--enable-preview")
+    options.release = 21
 }
