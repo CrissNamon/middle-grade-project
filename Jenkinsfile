@@ -3,6 +3,9 @@ pipeline {
     tools {
       gradle '8.11.1'
     }
+    environment {
+      dockerImage = ''
+    }
     stages {
 		    stage ("build") {
         	  steps {
@@ -11,13 +14,13 @@ pipeline {
         }
         stage ("build docker image") {
             steps {
-                sh 'docker build -t kpekepsalt:middle-grade-project .'
+                dockerImage = docker.build 'kpekepsalt:middle-grade-project'
             }
         }
         stage ("publish") {
             steps {
-                withDockerRegistry(credentialsId: 'docker-hub') {
-                     sh 'docker push kpekepsalt:middle-grade-project:latest'
+                docker.withRegistry('', 'docker-hub') {
+                     dockerImage.push()
                 }
             }
         }
