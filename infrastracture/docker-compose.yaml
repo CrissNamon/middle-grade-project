@@ -118,6 +118,20 @@ services:
     networks:
       - camunda-platform
 
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=nlmkend
+      - POSTGRES_USER=${JDBC_USER}
+      - POSTGRES_PASSWORD=${JDBC_PASSWORD}
+    volumes:
+      - ${PWD}/.db/pgdata:/var/lib/postgresql/data
+      - ${PWD}/.db/pginitdb/:/docker-entrypoint-initdb.d
+    tmpfs:
+      - /tmp
+
 volumes:
   zeebe:
   elastic:
