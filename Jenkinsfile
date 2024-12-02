@@ -2,6 +2,7 @@ pipeline {
     agent any
     tools {
       gradle '8.11.1'
+      'org.jenkinsci.plugins.docker.commons.tools.DockerTool' 'docker'
     }
     environment {
       dockerImage = ''
@@ -15,7 +16,9 @@ pipeline {
         stage ("build docker image") {
             steps {
                 script {
-                    dockerImage = docker.build("kpekepsalt/middle-grade-project")
+                    docker.withTool('docker') {
+                        dockerImage = docker.build("kpekepsalt/middle-grade-project")
+                    }
                 }
             }
         }
