@@ -4,9 +4,7 @@ pipeline {
     stages {
 		    stage ("build") {
         	  steps {
-                withGradle {
-            	      sh './gradlew test build'
-            	  }
+                sh 'gradle test build'
             }
         }
     }
