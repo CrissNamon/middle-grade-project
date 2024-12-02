@@ -61,5 +61,4 @@ tasks.test {
 
 tasks.withType(JavaCompile::class).all {
     options.compilerArgs.add("--enable-preview")
-    options.release = 21
 }
