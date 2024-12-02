@@ -13,6 +13,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 dependencies {
@@ -53,6 +54,8 @@ dependencies {
     testImplementation("io.camunda:zeebe-process-test-extension:8.6.5")
     testImplementation("io.camunda:zeebe-process-test-assertions:8.6.5")
     testImplementation("org.mockito:mockito-core:5.14.2")
+
+
 }
 
 tasks.test {
@@ -61,4 +64,27 @@ tasks.test {
 
 tasks.withType(JavaCompile::class).all {
     options.compilerArgs.add("--enable-preview")
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "ru.danilarassokhin.game.GameApplication"
+    }
+}
+
+tasks {
+    val fatJar = register<Jar>("fatJar") {
+        dependsOn.addAll(listOf("compileJava", "processResources")) // We need this for Gradle optimization to work
+        archiveFileName = "application.jar"
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        manifest { attributes(mapOf("Main-Class" to application.mainClass)) } // Provided we set it up in the application plugin configuration
+        val sourcesMain = sourceSets.main.get()
+        val contents = configurations.runtimeClasspath.get()
+            .map { if (it.isDirectory) it else zipTree(it) } +
+                sourcesMain.output
+        from(contents)
+    }
+    jar {
+        dependsOn(fatJar) // Trigger fat jar creation during build
+    }
 }

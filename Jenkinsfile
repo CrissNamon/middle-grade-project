@@ -6,7 +6,19 @@ pipeline {
     stages {
 		    stage ("build") {
         	  steps {
-                sh 'gradle test build'
+                sh 'gradle test jar'
+            }
+        }
+        stage ("build docker image") {
+            steps {
+                sh 'docker build -t kpekepsalt:middle-grade-project .'
+            }
+        }
+        stage ("publish") {
+            steps {
+                withDockerRegistry(credentialsId: 'docker-hub') {
+                     sh 'docker push kpekepsalt:middle-grade-project:latest'
+                }
             }
         }
     }
