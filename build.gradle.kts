@@ -6,6 +6,7 @@ plugins {
 
 application {
     mainClass = "ru.danilarassokhin.game.GameApplication"
+    applicationDefaultJvmArgs = setOf("--enable-preview")
 }
 
 group = "ru.danilarassokhin"
