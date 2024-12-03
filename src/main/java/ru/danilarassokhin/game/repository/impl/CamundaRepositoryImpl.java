@@ -11,17 +11,19 @@ import io.camunda.tasklist.dto.Pagination;
 import io.camunda.tasklist.dto.Task;
 import io.camunda.tasklist.dto.TaskSearch;
 import io.camunda.tasklist.dto.TaskState;
+import io.camunda.tasklist.exception.TaskListException;
 import io.camunda.tasklist.generated.model.TaskByVariables;
 import io.camunda.tasklist.generated.model.TaskByVariables.OperatorEnum;
 import io.camunda.zeebe.client.ZeebeClient;
-import lombok.RequiredArgsConstructor;
+import io.camunda.zeebe.client.api.command.ClientStatusException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import ru.danilarassokhin.game.entity.camunda.CamundaActionEntity;
 import ru.danilarassokhin.game.entity.camunda.CamundaProcessEntity;
 import ru.danilarassokhin.game.exception.CamundaException;
+import ru.danilarassokhin.game.factory.CircuitBreakerFactory;
 import ru.danilarassokhin.game.mapper.CamundaMapper;
 import ru.danilarassokhin.game.repository.CamundaRepository;
 import ru.danilarassokhin.game.util.TypeUtils;
-import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
@@ -29,7 +31,6 @@ import tech.hiddenproject.progressive.annotation.GameBean;
  * Implementation of {@link CamundaRepository} based on UserTasks.
  */
 @GameBean
-@RequiredArgsConstructor(onConstructor_ = {@Autofill})
 public class CamundaRepositoryImpl implements CamundaRepository {
 
   private static final String BUSINESS_KEY_VARIABLE_NAME = "businessKey";
@@ -41,33 +42,58 @@ public class CamundaRepositoryImpl implements CamundaRepository {
   private final ZeebeClient zeebeClient;
   private final CamundaTaskListClient taskListClient;
   private final CamundaMapper camundaMapper;
+  private final CircuitBreaker zeebeCircuitBreaker;
+  private final CircuitBreaker taskListCircuitBreaker;
+
+  @Autofill
+  public CamundaRepositoryImpl(
+      ZeebeClient zeebeClient,
+      CamundaTaskListClient taskListClient,
+      CamundaMapper camundaMapper,
+      CircuitBreakerFactory circuitBreakerFactory
+  ) {
+    this.zeebeClient = zeebeClient;
+    this.taskListClient = taskListClient;
+    this.camundaMapper = camundaMapper;
+    this.zeebeCircuitBreaker = circuitBreakerFactory.create(ZeebeClient.class.getCanonicalName(), ClientStatusException.class);
+    this.taskListCircuitBreaker = circuitBreakerFactory.create(CamundaTaskListClient.class.getCanonicalName(), TaskListException.class);
+  }
 
   @Override
   public CamundaProcessEntity createProcess(String processId, Map<String, Object> variables) {
     try {
-      return zeebeClient.newCreateInstanceCommand()
-          .bpmnProcessId(processId)
-          .latestVersion()
-          .variables(variables)
-          .send()
-          .thenApply(camundaMapper::processInstanceEventToEntity)
-          .toCompletableFuture()
-          .get();
-    } catch (InterruptedException | ExecutionException e) {
-      throw new CamundaException(e);
+      return zeebeCircuitBreaker.executeSupplier(() -> {
+            var processInstance = zeebeClient.newCreateInstanceCommand()
+                .bpmnProcessId(processId)
+                .latestVersion()
+                .variables(variables)
+                .send()
+                .join();
+            return camundaMapper.processInstanceEventToEntity(processInstance);
+          });
+    } catch (Throwable t) {
+      throw new CamundaException(t);
     }
   }
 
   @Override
   public List<CamundaActionEntity> getAvailableActions(Integer businessKey) {
-    return ThrowableOptional.sneaky(() -> getActionsFromUserTasks(taskListClient.getTasks(
-        createTaskSearch(businessKey)).getItems()), CamundaException::new);
+    try {
+      return taskListCircuitBreaker.executeCheckedSupplier(() -> getActionsFromUserTasks(
+          taskListClient.getTasks(createTaskSearch(businessKey)).getItems()));
+    } catch (Throwable e) {
+      throw new CamundaException(e);
+    }
   }
 
   @Override
   public void doAction(CamundaActionEntity action) {
-    ThrowableOptional.sneaky(() -> taskListClient.completeTask(
-        action.taskId(), Map.of(ACTION_VARIABLE_NAME, action.id())), CamundaException::new);
+    try {
+      taskListCircuitBreaker.executeCheckedRunnable(() -> taskListClient.completeTask(
+          action.taskId(), Map.of(ACTION_VARIABLE_NAME, action.id())));
+    } catch (Throwable e) {
+      throw new CamundaException(e);
+    }
   }
 
   @Override
@@ -86,11 +112,11 @@ public class CamundaRepositoryImpl implements CamundaRepository {
   @Override
   public void broadcastSignal(String signalId) {
     try {
-      zeebeClient.newBroadcastSignalCommand()
-          .signalName(signalId)
-          .send()
-          .get();
-    } catch (InterruptedException | ExecutionException e) {
+      zeebeCircuitBreaker.executeRunnable(() -> zeebeClient.newBroadcastSignalCommand()
+              .signalName(signalId)
+              .send()
+              .join());
+    } catch (Throwable e) {
       throw new CamundaException("Error occurred during signal broadcasting", e);
     }
   }

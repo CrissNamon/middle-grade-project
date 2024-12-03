@@ -24,4 +24,11 @@ public interface DungeonService {
    */
   DungeonStateDto attack(CreateDamageLogDto createDamageLogDto);
 
+  /**
+   * Searches for Dungeon by level.
+   * @param level Level
+   * @return {@link DungeonDto}
+   */
+  DungeonDto findByLevel(Integer level);
+
 }

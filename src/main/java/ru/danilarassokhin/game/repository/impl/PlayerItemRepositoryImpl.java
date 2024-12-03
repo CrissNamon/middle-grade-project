@@ -3,8 +3,11 @@ package ru.danilarassokhin.game.repository.impl;
 import java.util.Optional;
 
 import ru.danilarassokhin.game.entity.PlayerItem;
+import ru.danilarassokhin.game.factory.BloomFilterFactory;
+import ru.danilarassokhin.game.model.resilience.BloomFilterWithPresence;
 import ru.danilarassokhin.game.repository.PlayerItemRepository;
 import ru.danilarassokhin.game.sql.service.TransactionContext;
+import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
 @GameBean
@@ -20,9 +23,18 @@ public class PlayerItemRepositoryImpl implements PlayerItemRepository {
   private static final String EXISTS_BY_ID_QUERY =
       String.format("SELECT EXISTS(SELECT 1 FROM %s WHERE id = ?);", PlayerItem.TABLE_NAME);
 
+  private final BloomFilterWithPresence<Integer> playerItemIdsBloomFilter;
+
+  @Autofill
+  public PlayerItemRepositoryImpl(BloomFilterFactory bloomFilterFactory) {
+    this.playerItemIdsBloomFilter = bloomFilterFactory.create("playerItemIds", Integer.class);
+  }
+
   @Override
   public Integer save(TransactionContext ctx, PlayerItem entity) {
-    return ctx.query(SAVE_QUERY, entity.playerId(), entity.item().name(), entity.amount()).fetchOne(Integer.class);
+    var result = ctx.query(SAVE_QUERY, entity.playerId(), entity.item().name(), entity.amount()).fetchOne(Integer.class);
+    playerItemIdsBloomFilter.acknowledge(result);
+    return result;
   }
 
   @Override
@@ -32,6 +44,16 @@ public class PlayerItemRepositoryImpl implements PlayerItemRepository {
 
   @Override
   public boolean existsById(TransactionContext ctx, Integer id) {
-    return ctx.query(EXISTS_BY_ID_QUERY, id).fetchOne(Boolean.class);
+    return switch (playerItemIdsBloomFilter.mightContain(id)) {
+      case UNKNOWN, MIGHT_CONTAINS -> {
+        var existsById = ctx.query(EXISTS_BY_ID_QUERY, id).fetchOne(Boolean.class);
+        playerItemIdsBloomFilter.acknowledge(id);
+        if (existsById) {
+          playerItemIdsBloomFilter.put(id);
+        }
+        yield existsById;
+      }
+      case NOT_CONTAINS -> false;
+    };
   }
 }

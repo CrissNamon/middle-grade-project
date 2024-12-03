@@ -42,7 +42,7 @@ public class CamundaServiceImpl implements CamundaService {
   public void createProcess(Integer businessKey) {
     var variables = Map.<String, Object>of(
         CamundaVariables.LEVEL.getCamundaVariableName(), 1,
-        CamundaVariables.BUSINESS_KEY.getCamundaVariableName(), businessKey.toString()
+        CamundaVariables.BUSINESS_KEY.getCamundaVariableName(), businessKey
     );
     ThrowableOptional.sneaky(() -> camundaRepository.createProcess(processId, variables), CamundaException::new);
   }

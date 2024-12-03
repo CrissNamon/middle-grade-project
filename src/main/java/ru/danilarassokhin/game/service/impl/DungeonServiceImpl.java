@@ -7,6 +7,7 @@ import java.sql.SQLException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.danilarassokhin.game.entity.CatalogueDungeonEntity;
 import ru.danilarassokhin.game.entity.DamageLogEntity;
 import ru.danilarassokhin.game.entity.DungeonEntity;
 import ru.danilarassokhin.game.entity.PlayerEntity;
@@ -20,6 +21,7 @@ import ru.danilarassokhin.game.model.dto.DungeonDto;
 import ru.danilarassokhin.game.model.dto.CreateDungeonDto;
 import ru.danilarassokhin.game.model.dto.DungeonStateDto;
 import ru.danilarassokhin.game.repository.CamundaRepository;
+import ru.danilarassokhin.game.repository.CatalogueDungeonRepository;
 import ru.danilarassokhin.game.repository.DamageLogRepository;
 import ru.danilarassokhin.game.repository.DungeonRepository;
 import ru.danilarassokhin.game.repository.PlayerRepository;
@@ -43,6 +45,7 @@ public class DungeonServiceImpl implements DungeonService {
   private final DamageLogRepository damageLogRepository;
   private final PlayerRepository playerRepository;
   private final CamundaRepository camundaRepository;
+  private final CatalogueDungeonRepository catalogueDungeonRepository;
 
   @Override
   public DungeonDto save(CreateDungeonDto createDungeonDto) {
@@ -70,6 +73,15 @@ public class DungeonServiceImpl implements DungeonService {
                                   DataSourceException.class, SQLException.class);
   }
 
+  @Override
+  public DungeonDto findByLevel(Integer level) {
+    return transactionManager.fetchInTransaction(ctx -> {
+      ctx.readOnly();
+      return dungeonRepository.findByLevel(ctx, level);
+    }).map(dungeonMapper::dungeonEntityToDto)
+        .orElseThrow(() -> new ApplicationException("Dungeon not found"));
+  }
+
   private DungeonStateDto attackDungeonTransaction(CreateDamageLogDto createDamageLogDto) {
     try {
       return transactionManager.fetchInTransaction(Connection.TRANSACTION_SERIALIZABLE, ctx -> {
@@ -77,10 +89,12 @@ public class DungeonServiceImpl implements DungeonService {
             .orElseThrow(() -> new ApplicationException("Dungeon not found"));
         var player = playerRepository.findById(ctx, createDamageLogDto.playerId())
             .orElseThrow(() -> new ApplicationException("Player not found"));
+        var dungeonCatalogue = catalogueDungeonRepository.findByCode(ctx, dungeon.code())
+            .orElseThrow(() -> new ApplicationException("Dungeon not found"));
         var newDamage = calculateDamage(player, dungeon);
-        var currentDamage = dealDamage(ctx, createDamageLogDto, dungeon, newDamage);
+        var currentDamage = dealDamage(ctx, createDamageLogDto, dungeonCatalogue, newDamage);
         playerRepository.update(ctx, player.addMoney(calculateMoney(player, dungeon)));
-        if (currentDamage + newDamage >= dungeon.code().getHealth()) {
+        if (currentDamage + newDamage >= dungeonCatalogue.health()) {
           return reviveDungeon(ctx, createDamageLogDto, dungeon, player.getLevel());
         }
         return new DungeonStateDto(DungeonState.ALIVE, dungeon.code());
@@ -93,11 +107,11 @@ public class DungeonServiceImpl implements DungeonService {
   private Long dealDamage(
       TransactionContext ctx,
       CreateDamageLogDto createDamageLogDto,
-      DungeonEntity dungeon,
+      CatalogueDungeonEntity catalogueDungeon,
       Integer newDamage
   ) {
     var currentDamage = damageLogRepository.countDamage(ctx, createDamageLogDto.dungeonId());
-    if (currentDamage < dungeon.code().getHealth()) {
+    if (currentDamage < catalogueDungeon.health()) {
       damageLogRepository.save(ctx, new DamageLogEntity(createDamageLogDto.playerId(),
         createDamageLogDto.dungeonId(), newDamage));
     }

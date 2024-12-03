@@ -3,6 +3,7 @@ package ru.danilarassokhin.game.sql.service.impl;
 import java.sql.Connection;
 import java.util.Objects;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.exception.DataSourceException;
@@ -12,16 +13,30 @@ import ru.danilarassokhin.game.sql.service.TransactionContext;
 import ru.danilarassokhin.game.sql.service.QueryFunction;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
 
-@RequiredArgsConstructor
 public class TransactionContextImpl implements TransactionContext {
 
   @Getter
   private final Connection connection;
   private final JdbcMapperService jdbcMapperService;
+  private String currentSchema;
   private String schemaName;
+
+  public TransactionContextImpl(
+      Connection connection,
+      JdbcMapperService jdbcMapperService,
+      String schemaName
+  ) {
+    this.connection = connection;
+    this.jdbcMapperService = jdbcMapperService;
+    this.schemaName = schemaName;
+  }
 
   @Override
   public QueryContext query(String query, Object... args) {
+    if (!schemaName.equals(currentSchema)) {
+      setSchema();
+      this.currentSchema = schemaName;
+    }
     return new QueryContextImpl(connection, jdbcMapperService, query, args);
   }
 

@@ -8,7 +8,8 @@ import tech.hiddenproject.progressive.annotation.Configuration;
     "ru.danilarassokhin.game.mapper",
     "ru.danilarassokhin.game.repository.impl",
     "ru.danilarassokhin.game.service.impl",
-    "ru.danilarassokhin.game.controller"
+    "ru.danilarassokhin.game.controller",
+    "ru.danilarassokhin.game.factory.impl"
 })
 public class ComponentsConfig {
 

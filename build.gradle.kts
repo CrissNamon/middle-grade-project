@@ -42,6 +42,11 @@ dependencies {
     //Camunda
     implementation("io.camunda:zeebe-client-java:8.6.5")
     implementation("io.camunda:camunda-tasklist-client-java:8.6.5")
+    //Resilience
+    implementation("io.github.resilience4j:resilience4j-all:2.2.0")
+    implementation("com.google.guava:guava:33.3.1-jre")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+    implementation("com.github.ben-manes.caffeine:jcache:3.1.8")
     //Testing
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
