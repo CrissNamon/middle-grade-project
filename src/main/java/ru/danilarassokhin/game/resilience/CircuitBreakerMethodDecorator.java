@@ -9,6 +9,9 @@ import ru.danilarassokhin.game.injection.ProxyMethodDecorator;
 import ru.danilarassokhin.game.resilience.annotation.CircuitBreaker;
 import tech.hiddenproject.progressive.injection.DIContainer;
 
+/**
+ * {@link ProxyMethodDecorator} for {@link CircuitBreaker}.
+ */
 @RequiredArgsConstructor
 @Slf4j
 public class CircuitBreakerMethodDecorator implements ProxyMethodDecorator {

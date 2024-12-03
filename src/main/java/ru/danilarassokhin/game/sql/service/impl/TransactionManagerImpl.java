@@ -38,7 +38,7 @@ public class TransactionManagerImpl implements TransactionManager {
    */
   private static final Set<String> CONNECTION_EXCEPTION_SQL_STATES = Set.of("08000","08001", "08003", "08004", "08006");
 
-  private final ThreadLocal<Connection> transactionContextThreadLocal = new ThreadLocal<>();
+  private final ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<>();
 
   private final DataSource dataSource;
   private final String defaultSchemaName;
@@ -100,7 +100,7 @@ public class TransactionManagerImpl implements TransactionManager {
       var transactionTemplate = new TransactionContextImpl(c, jdbcMapperService, defaultSchemaName);
       return body.apply(transactionTemplate);
     };
-    var connection = transactionContextThreadLocal.get();
+    var connection = connectionThreadLocal.get();
     if (Objects.isNull(connection)) {
       return startTransaction(trxBody);
     } else {
@@ -111,31 +111,31 @@ public class TransactionManagerImpl implements TransactionManager {
   @Override
   @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public void commit() {
-    var connection = transactionContextThreadLocal.get();
+    var connection = connectionThreadLocal.get();
     if (Objects.nonNull(connection)) {
       ThrowableOptional.sneaky(connection::commit);
       closeSafely(connection);
-      transactionContextThreadLocal.remove();
+      connectionThreadLocal.remove();
     }
   }
 
   @Override
   @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public void openTransaction(int isolationLevel) {
-    Connection connection = transactionContextThreadLocal.get();
+    Connection connection = connectionThreadLocal.get();
     try {
       if (Objects.isNull(connection)) {
         connection = dataSource.getConnection();
         connection.setAutoCommit(false);
         connection.setTransactionIsolation(isolationLevel);
-        transactionContextThreadLocal.set(connection);
+        connectionThreadLocal.set(connection);
       }
     } catch (RuntimeException e) {
       rollbackSafely(connection);
-      transactionContextThreadLocal.remove();
+      connectionThreadLocal.remove();
       throw e;
     } catch (SQLException e) {
-      transactionContextThreadLocal.remove();
+      connectionThreadLocal.remove();
       if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
         throw new DataSourceConnectionException(e);
       }

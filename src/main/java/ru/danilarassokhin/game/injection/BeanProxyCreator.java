@@ -13,6 +13,9 @@ import tech.hiddenproject.progressive.BasicComponentManager;
 import tech.hiddenproject.progressive.ComponentCreator;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
+/**
+ * Implementation of {@link ComponentCreator} for proxy creation.
+ */
 @RequiredArgsConstructor
 public class BeanProxyCreator implements ComponentCreator {
 

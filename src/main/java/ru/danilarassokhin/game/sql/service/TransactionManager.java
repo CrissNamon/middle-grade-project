@@ -45,8 +45,15 @@ public interface TransactionManager {
    */
   <T> T fetchInTransaction(int isolationLevel, QueryFunction<TransactionContext, T> body);
 
+  /**
+   * Commits current transaction.
+   */
   void commit();
 
+  /**
+   * Opens new transaction.
+   * @param isolationLevel Transaction isolation level.
+   */
   void openTransaction(int isolationLevel);
 
 }
