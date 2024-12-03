@@ -132,9 +132,19 @@ services:
     tmpfs:
       - /tmp
 
+  jenkins:
+    image: jenkins/jenkins:lts-jdk21
+    ports:
+      - "9999:8080"
+      - "9990:50000"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+
 volumes:
   zeebe:
   elastic:
+  jenkins-data:
 
 networks:
   camunda-platform:
