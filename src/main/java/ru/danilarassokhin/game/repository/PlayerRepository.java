@@ -4,7 +4,6 @@ import java.util.List;
 
 import ru.danilarassokhin.game.entity.PlayerEntity;
 import ru.danilarassokhin.game.sql.repository.JdbcRepository;
-import ru.danilarassokhin.game.sql.service.TransactionContext;
 
 /**
  * Repository for {@link PlayerEntity}
@@ -29,7 +28,5 @@ public interface PlayerRepository extends JdbcRepository<PlayerEntity, Integer> 
    * @param playerIds Ids of players for update
    */
   void updateLevelsForIds(List<Integer> playerIds);
-
-  List<PlayerEntity> findAll();
 
 }

@@ -20,8 +20,6 @@ public class PlayerRepositoryImpl implements PlayerRepository {
       String.format("INSERT INTO %s(name) VALUES(?) RETURNING ID;", PlayerEntity.TABLE_NAME);
   private static final String FIND_BY_ID_QUERY =
       String.format("SELECT * FROM %s WHERE id = ?;", PlayerEntity.TABLE_NAME);
-  private static final String EXISTS_BY_ID_QUERY =
-      String.format("SELECT EXISTS(SELECT 1 FROM %s WHERE id = ?);", PlayerEntity.TABLE_NAME);
   private static final String EXISTS_BY_NAME_QUERY =
       String.format("SELECT EXISTS(SELECT 1 FROM %s WHERE name = ?);", PlayerEntity.TABLE_NAME);
   private static final String UPDATE_QUERY =
@@ -89,10 +87,5 @@ public class PlayerRepositoryImpl implements PlayerRepository {
     transactionManager.doInTransaction(ctx -> {
       ctx.query(UPDATE_LEVEL_QUERY, playerIds).execute();
     });
-  }
-
-  @Override
-  public List<PlayerEntity> findAll() {
-    return transactionManager.fetchInTransaction(ctx -> ctx.query("SELECT * FROM player;").fetchInto(PlayerEntity.class));
   }
 }

@@ -1,9 +1,6 @@
 package ru.danilarassokhin.game.service.impl;
 
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-import ru.danilarassokhin.game.entity.PlayerEntity;
 import ru.danilarassokhin.game.exception.ApplicationException;
 import ru.danilarassokhin.game.mapper.PlayerMapper;
 import ru.danilarassokhin.game.model.dto.CreatePlayerDto;
@@ -44,11 +41,5 @@ public class PlayerServiceImpl implements PlayerService {
     return playerRepository.findById(id)
         .map(playerMapper::playerEntityToDto)
         .orElseThrow(() -> new ApplicationException("Player not found"));
-  }
-
-  @Override
-  @Transactional
-  public List<PlayerEntity> findAll() {
-    return playerRepository.findAll();
   }
 }
