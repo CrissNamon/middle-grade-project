@@ -26,7 +26,7 @@ public class GameServer {
     var diContainer = BasicComponentManager.getDiContainer();
     var transactionalMethodDecorator = new TransactionalMethodDecorator(diContainer);
     var circuitBreakerMethodDecorator = new CircuitBreakerMethodDecorator(diContainer);
-    new BeanProxyCreator(List.of(circuitBreakerMethodDecorator, transactionalMethodDecorator));
+    new BeanProxyCreator(List.of(transactionalMethodDecorator, circuitBreakerMethodDecorator));
     Arrays.stream(configurations).forEach(diContainer::loadConfiguration);
     var propertiesFactory = diContainer.getBean(PropertiesFactory.class);
     var dispatcherController = diContainer.getBean(DispatcherController.class);

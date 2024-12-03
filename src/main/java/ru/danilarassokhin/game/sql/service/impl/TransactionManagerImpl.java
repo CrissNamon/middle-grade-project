@@ -112,6 +112,7 @@ public class TransactionManagerImpl implements TransactionManager {
   }
 
   @Override
+  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public <T> T executeInTransaction(int isolationLevel, Supplier<T> action) {
     Connection connection = null;
     try {
