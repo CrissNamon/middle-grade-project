@@ -1,6 +1,7 @@
 package ru.danilarassokhin.game.server;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import io.netty.handler.logging.LogLevel;
@@ -9,6 +10,7 @@ import ru.danilarassokhin.game.config.ApplicationConfig;
 import ru.danilarassokhin.game.security.LoggerHttpFilter;
 import ru.danilarassokhin.game.server.netty.HttpServerInitializer;
 import ru.danilarassokhin.game.server.netty.NettyServer;
+import ru.danilarassokhin.game.sql.service.impl.TransactionalMethodDecorator;
 import ru.danilarassokhin.game.util.PropertiesFactory;
 import ru.danilarassokhin.game.util.PropertyNames;
 import tech.hiddenproject.progressive.BasicComponentManager;
@@ -20,8 +22,8 @@ public class GameServer {
 
   public static void start(Class<?>... configurations) {
     var diContainer = BasicComponentManager.getDiContainer();
+    new BeanProxyCreator(diContainer, List.of(new TransactionalMethodDecorator(diContainer)));
     Arrays.stream(configurations).forEach(diContainer::loadConfiguration);
-
     var propertiesFactory = diContainer.getBean(PropertiesFactory.class);
     var dispatcherController = diContainer.getBean(DispatcherController.class);
     var loggingHandler = new LoggingHandler(LogLevel.DEBUG);

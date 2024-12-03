@@ -1,5 +1,6 @@
 package ru.danilarassokhin.game.service.impl;
 
+import java.util.List;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import ru.danilarassokhin.game.model.dto.PlayerDto;
 import ru.danilarassokhin.game.repository.PlayerRepository;
 import ru.danilarassokhin.game.service.CamundaService;
 import ru.danilarassokhin.game.service.PlayerService;
+import ru.danilarassokhin.game.sql.annotation.Transactional;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.annotation.Autofill;
@@ -25,6 +27,7 @@ public class PlayerServiceImpl implements PlayerService {
   private final PlayerMapper playerMapper;
   private final CamundaService camundaService;
 
+  @Transactional
   @Override
   public PlayerDto create(CreatePlayerDto createPlayerDto) {
     Optional<PlayerEntity> createdPlayer = transactionManager.fetchInTransaction(ctx -> {
@@ -49,5 +52,11 @@ public class PlayerServiceImpl implements PlayerService {
         })
         .map(playerMapper::playerEntityToDto)
         .orElseThrow(() -> new ApplicationException("Player not found"));
+  }
+
+  @Override
+  @Transactional
+  public List<PlayerEntity> findAll() {
+    return playerRepository.findAll();
   }
 }

@@ -4,7 +4,10 @@ import javax.sql.DataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import ru.danilarassokhin.game.exception.DataSourceException;
@@ -34,6 +37,8 @@ public class TransactionManagerImpl implements TransactionManager {
    */
   private static final Set<String> CONNECTION_EXCEPTION_SQL_STATES = Set.of("08000","08001", "08003", "08004", "08006");
 
+  private final ThreadLocal<Connection> transactionContextThreadLocal = new ThreadLocal<>();
+
   private final DataSource dataSource;
   private final String defaultSchemaName;
   private final JdbcMapperService jdbcMapperService;
@@ -56,25 +61,25 @@ public class TransactionManagerImpl implements TransactionManager {
   @SuppressWarnings("unchecked")
   public <T> T startTransaction(QueryFunction<Connection, T> body) {
     return circuitBreaker.executeSupplier(() -> {
-          Connection connection = null;
-          try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-            var result = body.apply(connection);
-            connection.commit();
-            return result;
-          } catch (RuntimeException e) {
-            rollbackSafely(connection);
-            throw e;
-          } catch (SQLException e) {
-            if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
-              throw new DataSourceConnectionException(e);
-            }
-            throw new DataSourceException(e);
-          } finally {
-            closeSafely(connection);
-          }
-        });
+      Connection connection = transactionContextThreadLocal.get();
+      try {
+        openTransaction();
+        var result = body.apply(connection);
+        connection.commit();
+        System.out.println("RESULT: " + result);
+        return result;
+      } catch (RuntimeException e) {
+        rollbackSafely(connection);
+        throw e;
+      } catch (SQLException e) {
+        if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
+          throw new DataSourceConnectionException(e);
+        }
+        throw new DataSourceException(e);
+      } finally {
+        closeSafely(connection);
+      }
+    });
   }
 
   @Override
@@ -100,11 +105,61 @@ public class TransactionManagerImpl implements TransactionManager {
 
   @Override
   public <T> T fetchInTransaction(int isolationLevel, QueryFunction<TransactionContext, T> body) {
-    return startTransaction(connection -> {
-      connection.setTransactionIsolation(isolationLevel);
-      var transactionTemplate = new TransactionContextImpl(connection, jdbcMapperService, defaultSchemaName);
+    var connection = transactionContextThreadLocal.get();
+    return handleConnectionAction(connection, c -> {
+      c.setTransactionIsolation(isolationLevel);
+      var transactionTemplate = new TransactionContextImpl(c, jdbcMapperService, defaultSchemaName);
       return body.apply(transactionTemplate);
     });
+  }
+
+  @Override
+  public void commit() {
+    var connection = transactionContextThreadLocal.get();
+    if (Objects.nonNull(connection)) {
+      ThrowableOptional.sneaky(connection::commit);
+      closeSafely(connection);
+      System.out.println("COMMITING");
+    }
+  }
+
+  @Override
+  public void openTransaction() {
+    circuitBreaker.executeRunnable(() -> {
+      Connection connection = transactionContextThreadLocal.get();
+      try {
+        if (Objects.isNull(connection)) {
+          connection = dataSource.getConnection();
+          connection.setAutoCommit(false);
+          transactionContextThreadLocal.set(connection);
+        }
+      } catch (RuntimeException e) {
+        rollbackSafely(connection);
+        throw e;
+      } catch (SQLException e) {
+        if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
+          throw new DataSourceConnectionException(e);
+        }
+        throw new DataSourceException(e);
+      }
+    });
+  }
+
+  private <T> T handleConnectionAction(Connection connection, QueryFunction<Connection, T> action) {
+    try {
+      if (Objects.nonNull(connection)) {
+        return action.apply(connection);
+      }
+      throw new SQLException("No active transaction");
+    } catch (RuntimeException e) {
+      rollbackSafely(connection);
+      throw e;
+    } catch (SQLException e) {
+      if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
+        throw new DataSourceConnectionException(e);
+      }
+      throw new DataSourceException(e);
+    }
   }
 
   private void rollbackSafely(Connection connection) {

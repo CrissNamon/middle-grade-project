@@ -43,4 +43,9 @@ public class PlayerController {
     camundaService.doAction(camundaMapper.camundaActionRequestToDto(request));
     return ResponseEntity.ok();
   }
+
+  @GetRequest("/api/player/all")
+  public ResponseEntity findAll(RequestEntity request) {
+    return ResponseEntity.ok(playerService.findAll());
+  }
 }

@@ -33,4 +33,6 @@ public interface PlayerRepository extends JdbcRepository<PlayerEntity, Integer> 
    */
   void updateLevelsForIds(TransactionContext ctx, List<Integer> playerIds);
 
+  List<PlayerEntity> findAll();
+
 }

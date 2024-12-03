@@ -1,5 +1,8 @@
 package ru.danilarassokhin.game.service;
 
+import java.util.List;
+
+import ru.danilarassokhin.game.entity.PlayerEntity;
 import ru.danilarassokhin.game.model.dto.CreatePlayerDto;
 import ru.danilarassokhin.game.model.dto.PlayerDto;
 
@@ -21,5 +24,7 @@ public interface PlayerService {
    * @return {@link PlayerDto}
    */
   PlayerDto getById(Integer id);
+
+  List<PlayerEntity> findAll();
 
 }

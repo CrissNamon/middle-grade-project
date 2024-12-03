@@ -3,12 +3,14 @@ package ru.danilarassokhin.game.repository.impl;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.entity.PlayerEntity;
 import ru.danilarassokhin.game.factory.BloomFilterFactory;
 import ru.danilarassokhin.game.model.resilience.BloomFilterWithPresence;
 import ru.danilarassokhin.game.repository.PlayerRepository;
 import ru.danilarassokhin.game.sql.service.TransactionContext;
+import ru.danilarassokhin.game.sql.service.TransactionManager;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
@@ -31,11 +33,13 @@ public class PlayerRepositoryImpl implements PlayerRepository {
 
   private final BloomFilterWithPresence<String> playerNamesBloomFilter;
   private final BloomFilterWithPresence<Integer> playerIdsBloomFilter;
+  private final TransactionManager transactionManager;
 
   @Autofill
-  public PlayerRepositoryImpl(BloomFilterFactory bloomFilterFactory) {
+  public PlayerRepositoryImpl(BloomFilterFactory bloomFilterFactory, TransactionManager transactionManager) {
     this.playerNamesBloomFilter = bloomFilterFactory.create("playerNames", String.class);
     this.playerIdsBloomFilter = bloomFilterFactory.create("playerIds", Integer.class);
+    this.transactionManager = transactionManager;
   }
 
   @Override
@@ -93,5 +97,10 @@ public class PlayerRepositoryImpl implements PlayerRepository {
   @Override
   public void updateLevelsForIds(TransactionContext ctx, List<Integer> playerIds) {
     ctx.query(UPDATE_LEVEL_QUERY, playerIds).execute();
+  }
+
+  @Override
+  public List<PlayerEntity> findAll() {
+    return transactionManager.fetchInTransaction(ctx -> ctx.query("SELECT * FROM player;").fetchInto(PlayerEntity.class));
   }
 }
