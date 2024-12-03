@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.exception.DataSourceException;
@@ -96,50 +97,44 @@ public class TransactionManagerImpl implements TransactionManager {
   @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public <T> T fetchInTransaction(int isolationLevel, QueryFunction<TransactionContext, T> body) {
     QueryFunction<Connection, T> trxBody = (c) -> {
-      c.setTransactionIsolation(isolationLevel);
       var transactionTemplate = new TransactionContextImpl(c, jdbcMapperService, defaultSchemaName);
       return body.apply(transactionTemplate);
     };
     var connection = connectionThreadLocal.get();
     if (Objects.isNull(connection)) {
-      return startTransaction(trxBody);
+      return startTransaction(c -> {
+        c.setTransactionIsolation(isolationLevel);
+        return trxBody.apply(c);
+      });
     } else {
       return handleConnectionAction(connection, trxBody);
     }
   }
 
   @Override
-  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
-  public void commit() {
-    var connection = connectionThreadLocal.get();
-    if (Objects.nonNull(connection)) {
-      ThrowableOptional.sneaky(connection::commit);
-      closeSafely(connection);
-      connectionThreadLocal.remove();
-    }
-  }
-
-  @Override
-  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
-  public void openTransaction(int isolationLevel) {
-    Connection connection = connectionThreadLocal.get();
+  public <T> T executeInTransaction(int isolationLevel, Supplier<T> action) {
+    Connection connection = null;
     try {
-      if (Objects.isNull(connection)) {
-        connection = dataSource.getConnection();
-        connection.setAutoCommit(false);
-        connection.setTransactionIsolation(isolationLevel);
-        connectionThreadLocal.set(connection);
-      }
+      connection = dataSource.getConnection();
+      log.info("Created new connection: {}", connection.hashCode());
+      connection.setAutoCommit(false);
+      connection.setTransactionIsolation(isolationLevel);
+      connectionThreadLocal.set(connection);
+      var result = action.get();
+      connection.commit();
+      log.info("Committed: {}", connection.hashCode());
+      return result;
     } catch (RuntimeException e) {
       rollbackSafely(connection);
-      connectionThreadLocal.remove();
       throw e;
     } catch (SQLException e) {
-      connectionThreadLocal.remove();
       if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
         throw new DataSourceConnectionException(e);
       }
       throw new DataSourceException(e);
+    } finally {
+      closeSafely(connection);
+      connectionThreadLocal.remove();
     }
   }
 

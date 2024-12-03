@@ -60,7 +60,6 @@ public class PlayerRepositoryImpl implements PlayerRepository {
   public boolean existsByName(String name) {
     return switch (playerNamesBloomFilter.mightContain(name)) {
       case UNKNOWN -> {
-        log.info("Player name not found in filter");
         var existsByName = transactionManager.fetchInTransaction(ctx -> ctx.query(
             EXISTS_BY_NAME_QUERY, name).fetchOne(Boolean.class));
         playerNamesBloomFilter.acknowledge(name);

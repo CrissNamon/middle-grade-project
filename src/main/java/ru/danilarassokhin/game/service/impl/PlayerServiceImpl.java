@@ -27,7 +27,7 @@ public class PlayerServiceImpl implements PlayerService {
     if (!playerRepository.existsByName(createPlayerDto.name())) {
       var newPlayerId = playerRepository.save(playerMapper.createPlayerDtoToEntity(createPlayerDto));
       ThrowableOptional.sneaky(() -> camundaService.createProcess(newPlayerId),
-                               e -> new ApplicationException("Exception occurred during player creation"));
+                               e -> new ApplicationException("Exception occurred during player creation", e));
       var createdPlayer = playerRepository.findById(newPlayerId);
       return createdPlayer
           .map(playerMapper::playerEntityToDto)

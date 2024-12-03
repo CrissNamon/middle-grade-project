@@ -19,10 +19,8 @@ public class TransactionalMethodDecorator implements ProxyMethodDecorator {
     return (invoker, args) -> {
       var transactionManager = diContainer.getBean(TransactionManager.class);
       var transactionData = realMethod.getAnnotation(Transactional.class);
-      transactionManager.openTransaction(transactionData.isolationLevel());
-      var result = proxyMethod.invoke(realObject, args);
-      transactionManager.commit();
-      return result;
+      return transactionManager.executeInTransaction(transactionData.isolationLevel(),
+                                              () -> proxyMethod.invoke(realObject, args));
     };
   }
 

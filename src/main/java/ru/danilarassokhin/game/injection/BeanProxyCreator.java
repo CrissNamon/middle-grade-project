@@ -2,11 +2,16 @@ package ru.danilarassokhin.game.injection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import ru.danilarassokhin.game.exception.ApplicationException;
 import ru.danilarassokhin.game.util.TypeUtils;
 import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.BasicComponentManager;
@@ -17,6 +22,7 @@ import tech.hiddenproject.progressive.annotation.GameBean;
  * Implementation of {@link ComponentCreator} for proxy creation.
  */
 @RequiredArgsConstructor
+@Slf4j
 public class BeanProxyCreator implements ComponentCreator {
 
   private static final ComponentCreator DEFAULT_CREATOR = BasicComponentManager.getComponentCreator();
@@ -49,7 +55,7 @@ public class BeanProxyCreator implements ComponentCreator {
 
   private Object createProxy(Class<?> beanClass, Object realObject) {
     InvocationHandler invocationHandler = (proxy, method, args) -> {
-      var realMethod = realObject.getClass().getDeclaredMethod(method.getName(), method.getParameterTypes());
+      var realMethod = beanClass.getMethod(method.getName(), method.getParameterTypes());
       var proxyMethod = createProxyMethod(realObject, realMethod);
       return decorate(proxyMethod, realObject, realMethod).invoke(realObject, args);
     };
@@ -67,6 +73,17 @@ public class BeanProxyCreator implements ComponentCreator {
   }
 
   private ProxyMethod createProxyMethod(Object realObject, Method realMethod) {
-    return (invoker, args) -> ThrowableOptional.sneaky(() -> realMethod.invoke(realObject, args));
+    return (invoker, args) -> {
+      try {
+        return realMethod.invoke(realObject, args);
+      } catch (IllegalAccessException e) {
+        throw new ApplicationException(e);
+      } catch (InvocationTargetException e) {
+        if (Objects.nonNull(e.getCause()) && RuntimeException.class.isAssignableFrom(e.getCause().getClass())) {
+          throw (RuntimeException) e.getCause();
+        }
+        throw new ApplicationException(e);
+      }
+    };
   }
 }
