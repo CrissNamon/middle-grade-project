@@ -47,6 +47,6 @@ public interface TransactionManager {
 
   void commit();
 
-  void openTransaction();
+  void openTransaction(int isolationLevel);
 
 }

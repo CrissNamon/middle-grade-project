@@ -8,16 +8,14 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.factory.CircuitBreakerFactory;
-import tech.hiddenproject.progressive.annotation.GameBean;
 
 /**
  * Implementation of {@link CircuitBreakerFactory}.
  */
-@GameBean
 @Slf4j
 public class CircuitBreakerFactoryImpl implements CircuitBreakerFactory {
 
-  private static final Integer DEFAULT_FAILURE_RATE_THRESHOLD = 50;
+  private static final Integer DEFAULT_FAILURE_RATE_THRESHOLD = 1;
   private static final Integer DEFAULT_NUMBER_OF_CALLS_IN_HALF_OPEN = 2;
   private static final Duration DEFAULT_DURATION_OPEN_STATE = Duration.ofMillis(1000);
 

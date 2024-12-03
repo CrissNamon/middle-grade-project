@@ -2,15 +2,15 @@ package ru.danilarassokhin.game.repository.impl;
 
 import java.util.Optional;
 
+import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.entity.PlayerItem;
-import ru.danilarassokhin.game.factory.BloomFilterFactory;
-import ru.danilarassokhin.game.model.resilience.BloomFilterWithPresence;
 import ru.danilarassokhin.game.repository.PlayerItemRepository;
-import ru.danilarassokhin.game.sql.service.TransactionContext;
+import ru.danilarassokhin.game.sql.service.TransactionManager;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
 @GameBean
+@RequiredArgsConstructor(onConstructor_ = {@Autofill})
 public class PlayerItemRepositoryImpl implements PlayerItemRepository {
 
   private static final String SAVE_QUERY =
@@ -20,40 +20,18 @@ public class PlayerItemRepositoryImpl implements PlayerItemRepository {
         """, PlayerItem.TABLE_NAME, PlayerItem.UX_PLAYER_ITEM_ID_CONSTRAINT, PlayerItem.TABLE_NAME);
   private static final String FIND_BY_ID_QUERY =
       String.format("SELECT * FROM %s WHERE id = ?;", PlayerItem.TABLE_NAME);
-  private static final String EXISTS_BY_ID_QUERY =
-      String.format("SELECT EXISTS(SELECT 1 FROM %s WHERE id = ?);", PlayerItem.TABLE_NAME);
 
-  private final BloomFilterWithPresence<Integer> playerItemIdsBloomFilter;
+  private final TransactionManager transactionManager;
 
-  @Autofill
-  public PlayerItemRepositoryImpl(BloomFilterFactory bloomFilterFactory) {
-    this.playerItemIdsBloomFilter = bloomFilterFactory.create("playerItemIds", Integer.class);
+  @Override
+  public Integer save(PlayerItem entity) {
+    return transactionManager.fetchInTransaction(ctx -> ctx.query(
+        SAVE_QUERY, entity.playerId(), entity.item().name(), entity.amount()).fetchOne(Integer.class));
   }
 
   @Override
-  public Integer save(TransactionContext ctx, PlayerItem entity) {
-    var result = ctx.query(SAVE_QUERY, entity.playerId(), entity.item().name(), entity.amount()).fetchOne(Integer.class);
-    playerItemIdsBloomFilter.acknowledge(result);
-    return result;
-  }
-
-  @Override
-  public Optional<PlayerItem> findById(TransactionContext ctx, Integer id) {
-    return Optional.ofNullable(ctx.query(FIND_BY_ID_QUERY, id).fetchOne(PlayerItem.class));
-  }
-
-  @Override
-  public boolean existsById(TransactionContext ctx, Integer id) {
-    return switch (playerItemIdsBloomFilter.mightContain(id)) {
-      case UNKNOWN, MIGHT_CONTAINS -> {
-        var existsById = ctx.query(EXISTS_BY_ID_QUERY, id).fetchOne(Boolean.class);
-        playerItemIdsBloomFilter.acknowledge(id);
-        if (existsById) {
-          playerItemIdsBloomFilter.put(id);
-        }
-        yield existsById;
-      }
-      case NOT_CONTAINS -> false;
-    };
+  public Optional<PlayerItem> findById(Integer id) {
+    return transactionManager.fetchInTransaction(ctx -> Optional.ofNullable(
+        ctx.query(FIND_BY_ID_QUERY, id).fetchOne(PlayerItem.class)));
   }
 }

@@ -7,6 +7,8 @@ import java.util.Set;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import ru.danilarassokhin.game.config.ApplicationConfig;
+import ru.danilarassokhin.game.injection.BeanProxyCreator;
+import ru.danilarassokhin.game.resilience.CircuitBreakerMethodDecorator;
 import ru.danilarassokhin.game.security.LoggerHttpFilter;
 import ru.danilarassokhin.game.server.netty.HttpServerInitializer;
 import ru.danilarassokhin.game.server.netty.NettyServer;
@@ -22,7 +24,9 @@ public class GameServer {
 
   public static void start(Class<?>... configurations) {
     var diContainer = BasicComponentManager.getDiContainer();
-    new BeanProxyCreator(diContainer, List.of(new TransactionalMethodDecorator(diContainer)));
+    var transactionalMethodDecorator = new TransactionalMethodDecorator(diContainer);
+    var circuitBreakerMethodDecorator = new CircuitBreakerMethodDecorator(diContainer);
+    new BeanProxyCreator(List.of(circuitBreakerMethodDecorator, transactionalMethodDecorator));
     Arrays.stream(configurations).forEach(diContainer::loadConfiguration);
     var propertiesFactory = diContainer.getBean(PropertiesFactory.class);
     var dispatcherController = diContainer.getBean(DispatcherController.class);

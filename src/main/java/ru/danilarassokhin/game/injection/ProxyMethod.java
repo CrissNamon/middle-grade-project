@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.server;
+package ru.danilarassokhin.game.injection;
 
 public interface ProxyMethod {
 

@@ -7,7 +7,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.entity.CatalogueDungeonEntity;
 import ru.danilarassokhin.game.repository.CatalogueDungeonRepository;
-import ru.danilarassokhin.game.sql.service.TransactionContext;
+import ru.danilarassokhin.game.sql.service.TransactionManager;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 import tech.hiddenproject.progressive.annotation.Qualifier;
@@ -24,10 +24,11 @@ public class CatalogueDungeonRepositoryImpl implements CatalogueDungeonRepositor
 
   @Qualifier("dungeonCatalogueCache")
   private final Cache<String, CatalogueDungeonEntity> dungeonsByCodeCache;
+  private final TransactionManager transactionManager;
 
   @Override
-  public Optional<CatalogueDungeonEntity> findByCode(TransactionContext ctx, String code) {
-    return Optional.ofNullable(dungeonsByCodeCache.get(code))
-        .or(() -> Optional.ofNullable(ctx.query(FIND_BY_CODE_QUERY, code).fetchOne(CatalogueDungeonEntity.class)));
+  public Optional<CatalogueDungeonEntity> findByCode(String code) {
+    return transactionManager.fetchInTransaction(ctx -> Optional.ofNullable(dungeonsByCodeCache.get(code))
+        .or(() -> Optional.ofNullable(ctx.query(FIND_BY_CODE_QUERY, code).fetchOne(CatalogueDungeonEntity.class))));
   }
 }

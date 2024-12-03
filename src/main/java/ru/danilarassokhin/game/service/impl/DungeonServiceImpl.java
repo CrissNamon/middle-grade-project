@@ -26,8 +26,7 @@ import ru.danilarassokhin.game.repository.DamageLogRepository;
 import ru.danilarassokhin.game.repository.DungeonRepository;
 import ru.danilarassokhin.game.repository.PlayerRepository;
 import ru.danilarassokhin.game.service.DungeonService;
-import ru.danilarassokhin.game.sql.service.TransactionContext;
-import ru.danilarassokhin.game.sql.service.TransactionManager;
+import ru.danilarassokhin.game.sql.annotation.Transactional;
 import ru.danilarassokhin.game.util.AwaitUtil;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
@@ -39,7 +38,6 @@ public class DungeonServiceImpl implements DungeonService {
 
   private static final Integer MINIMUM_DAMAGE_COUNT = 1;
 
-  private final TransactionManager transactionManager;
   private final DungeonMapper dungeonMapper;
   private final DungeonRepository dungeonRepository;
   private final DamageLogRepository damageLogRepository;
@@ -48,15 +46,15 @@ public class DungeonServiceImpl implements DungeonService {
   private final CatalogueDungeonRepository catalogueDungeonRepository;
 
   @Override
+  @Transactional
   public DungeonDto save(CreateDungeonDto createDungeonDto) {
-    return transactionManager.fetchInTransaction(ctx -> {
-      if (!dungeonRepository.existsByLevelAndCode(ctx, createDungeonDto.level(), createDungeonDto.code())) {
-        var id = dungeonRepository.save(ctx, dungeonMapper.createDungeonDtoToEntity(createDungeonDto));
-        return dungeonRepository.findById(ctx, id);
-      }
-      throw new ApplicationException("Dungeon already exists");
-    }).map(dungeonMapper::dungeonEntityToDto)
-        .orElseThrow(() -> new ApplicationException("Dungeon save failed"));
+    if (!dungeonRepository.existsByLevelAndCode(createDungeonDto.level(), createDungeonDto.code())) {
+      var id = dungeonRepository.save(dungeonMapper.createDungeonDtoToEntity(createDungeonDto));
+      return dungeonRepository.findById(id)
+          .map(dungeonMapper::dungeonEntityToDto)
+          .orElseThrow(() -> new ApplicationException("Dungeon save failed"));
+    }
+    throw new ApplicationException("Dungeon already exists");
   }
 
   //Используем SERIALIZABLE, т.к. транзакция выполняет аггрегацию и вставку новых строк в таблицу
@@ -66,6 +64,7 @@ public class DungeonServiceImpl implements DungeonService {
   //Т.к. в Postgres SERIALIZABLE использует предикатные блокировки, транзакция может упасть с ошибкой сериализации
   //Повторяем транзакцию пока не выполнится успешно, но не более 10 раз
   @Override
+  @Transactional(isolationLevel = Connection.TRANSACTION_SERIALIZABLE)
   public DungeonStateDto attack(CreateDamageLogDto createDamageLogDto) {
     return AwaitUtil.retryOnError(TRANSACTION_DEFAULT_RETRY_COUNT,
                                   () -> attackDungeonTransaction(createDamageLogDto),
@@ -75,58 +74,52 @@ public class DungeonServiceImpl implements DungeonService {
 
   @Override
   public DungeonDto findByLevel(Integer level) {
-    return transactionManager.fetchInTransaction(ctx -> {
-      ctx.readOnly();
-      return dungeonRepository.findByLevel(ctx, level);
-    }).map(dungeonMapper::dungeonEntityToDto)
+    return dungeonRepository.findByLevel(level)
+        .map(dungeonMapper::dungeonEntityToDto)
         .orElseThrow(() -> new ApplicationException("Dungeon not found"));
   }
 
   private DungeonStateDto attackDungeonTransaction(CreateDamageLogDto createDamageLogDto) {
     try {
-      return transactionManager.fetchInTransaction(Connection.TRANSACTION_SERIALIZABLE, ctx -> {
-        var dungeon = dungeonRepository.findById(ctx, createDamageLogDto.dungeonId())
-            .orElseThrow(() -> new ApplicationException("Dungeon not found"));
-        var player = playerRepository.findById(ctx, createDamageLogDto.playerId())
-            .orElseThrow(() -> new ApplicationException("Player not found"));
-        var dungeonCatalogue = catalogueDungeonRepository.findByCode(ctx, dungeon.code())
-            .orElseThrow(() -> new ApplicationException("Dungeon not found"));
-        var newDamage = calculateDamage(player, dungeon);
-        var currentDamage = dealDamage(ctx, createDamageLogDto, dungeonCatalogue, newDamage);
-        playerRepository.update(ctx, player.addMoney(calculateMoney(player, dungeon)));
-        if (currentDamage + newDamage >= dungeonCatalogue.health()) {
-          return reviveDungeon(ctx, createDamageLogDto, dungeon, player.getLevel());
-        }
-        return new DungeonStateDto(DungeonState.ALIVE, dungeon.code());
-      });
+      var dungeon = dungeonRepository.findById(createDamageLogDto.dungeonId())
+          .orElseThrow(() -> new ApplicationException("Dungeon not found"));
+      var player = playerRepository.findById(createDamageLogDto.playerId())
+          .orElseThrow(() -> new ApplicationException("Player not found"));
+      var dungeonCatalogue = catalogueDungeonRepository.findByCode(dungeon.code())
+          .orElseThrow(() -> new ApplicationException("Dungeon not found"));
+      var newDamage = calculateDamage(player, dungeon);
+      var currentDamage = dealDamage(createDamageLogDto, dungeonCatalogue, newDamage);
+      playerRepository.update(player.addMoney(calculateMoney(player, dungeon)));
+      if (currentDamage + newDamage >= dungeonCatalogue.health()) {
+        return reviveDungeon(createDamageLogDto, dungeon, player.getLevel());
+      }
+      return new DungeonStateDto(DungeonState.ALIVE, dungeon.code());
     } catch (DataSourceException e) {
       throw new ApplicationException("Error during attack. Try again");
     }
   }
 
   private Long dealDamage(
-      TransactionContext ctx,
       CreateDamageLogDto createDamageLogDto,
       CatalogueDungeonEntity catalogueDungeon,
       Integer newDamage
   ) {
-    var currentDamage = damageLogRepository.countDamage(ctx, createDamageLogDto.dungeonId());
+    var currentDamage = damageLogRepository.countDamage(createDamageLogDto.dungeonId());
     if (currentDamage < catalogueDungeon.health()) {
-      damageLogRepository.save(ctx, new DamageLogEntity(createDamageLogDto.playerId(),
+      damageLogRepository.save(new DamageLogEntity(createDamageLogDto.playerId(),
         createDamageLogDto.dungeonId(), newDamage));
     }
     return currentDamage;
   }
 
   private DungeonStateDto reviveDungeon(
-      TransactionContext ctx,
       CreateDamageLogDto createDamageLogDto,
       DungeonEntity dungeon,
       Integer level
   ) {
-    var activePlayers = damageLogRepository.findPlayersForActiveDungeon(ctx, createDamageLogDto.dungeonId());
-    playerRepository.updateLevelsForIds(ctx, activePlayers);
-    damageLogRepository.revive(ctx, createDamageLogDto.dungeonId());
+    var activePlayers = damageLogRepository.findPlayersForActiveDungeon(createDamageLogDto.dungeonId());
+    playerRepository.updateLevelsForIds(activePlayers);
+    damageLogRepository.revive(createDamageLogDto.dungeonId());
     camundaRepository.broadcastSignal(CamundaSignal.s_dungeon_completed.create(level));
     return new DungeonStateDto(DungeonState.COMPLETED, dungeon.code());
   }

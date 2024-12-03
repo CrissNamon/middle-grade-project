@@ -1,18 +1,18 @@
 package ru.danilarassokhin.game.sql.service.impl;
 
+import static ru.danilarassokhin.game.config.ResilienceConfig.DATA_SOURCE_CIRCUIT_BREAKER_NAME;
+
 import javax.sql.DataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.exception.DataSourceException;
 import ru.danilarassokhin.game.exception.DataSourceConnectionException;
-import ru.danilarassokhin.game.factory.CircuitBreakerFactory;
+import ru.danilarassokhin.game.resilience.annotation.CircuitBreaker;
 import ru.danilarassokhin.game.sql.service.JdbcMapperService;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
 import ru.danilarassokhin.game.sql.service.TransactionContext;
@@ -24,6 +24,7 @@ import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
 @GameBean
+@Slf4j
 public class TransactionManagerImpl implements TransactionManager {
 
   private static final String DATASOURCE_DEFAULT_SCHEME_PROPERTY = "datasource.defaultSchema";
@@ -42,47 +43,33 @@ public class TransactionManagerImpl implements TransactionManager {
   private final DataSource dataSource;
   private final String defaultSchemaName;
   private final JdbcMapperService jdbcMapperService;
-  private final CircuitBreaker circuitBreaker;
 
   @Autofill
   public TransactionManagerImpl(
       DataSource dataSource,
       PropertiesFactory propertiesFactory,
-      JdbcMapperService jdbcMapperServiceImpl,
-      CircuitBreakerFactory circuitBreakerFactory
+      JdbcMapperService jdbcMapperServiceImpl
   ) {
     this.dataSource = dataSource;
     this.jdbcMapperService = jdbcMapperServiceImpl;
     this.defaultSchemaName = propertiesFactory.getAsString(DATASOURCE_DEFAULT_SCHEME_PROPERTY).orElse(null);
-    this.circuitBreaker = circuitBreakerFactory.create(getClass().getCanonicalName(), DataSourceConnectionException.class);
   }
 
   @Override
-  @SuppressWarnings("unchecked")
+  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public <T> T startTransaction(QueryFunction<Connection, T> body) {
-    return circuitBreaker.executeSupplier(() -> {
-      Connection connection = transactionContextThreadLocal.get();
-      try {
-        openTransaction();
-        var result = body.apply(connection);
-        connection.commit();
-        System.out.println("RESULT: " + result);
-        return result;
-      } catch (RuntimeException e) {
-        rollbackSafely(connection);
-        throw e;
-      } catch (SQLException e) {
-        if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
-          throw new DataSourceConnectionException(e);
-        }
-        throw new DataSourceException(e);
-      } finally {
-        closeSafely(connection);
+    try {
+      return startTransaction(dataSource.getConnection(), body);
+    } catch (SQLException e) {
+      if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
+        throw new DataSourceConnectionException(e);
       }
-    });
+      throw new DataSourceException(e);
+    }
   }
 
   @Override
+  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public void doInTransaction(QueryConsumer<TransactionContext> body) {
     fetchInTransaction(transactionTemplate -> {
       body.accept(transactionTemplate);
@@ -91,6 +78,7 @@ public class TransactionManagerImpl implements TransactionManager {
   }
 
   @Override
+  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public void doInTransaction(int isolationLevel, QueryConsumer<TransactionContext> body) {
     fetchInTransaction(isolationLevel, transactionTemplate -> {
       body.accept(transactionTemplate);
@@ -99,58 +87,83 @@ public class TransactionManagerImpl implements TransactionManager {
   }
 
   @Override
+  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public <T> T fetchInTransaction(QueryFunction<TransactionContext, T> body) {
     return fetchInTransaction(Connection.TRANSACTION_READ_COMMITTED, body);
   }
 
   @Override
+  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public <T> T fetchInTransaction(int isolationLevel, QueryFunction<TransactionContext, T> body) {
-    var connection = transactionContextThreadLocal.get();
-    return handleConnectionAction(connection, c -> {
+    QueryFunction<Connection, T> trxBody = (c) -> {
       c.setTransactionIsolation(isolationLevel);
       var transactionTemplate = new TransactionContextImpl(c, jdbcMapperService, defaultSchemaName);
       return body.apply(transactionTemplate);
-    });
+    };
+    var connection = transactionContextThreadLocal.get();
+    if (Objects.isNull(connection)) {
+      return startTransaction(trxBody);
+    } else {
+      return handleConnectionAction(connection, trxBody);
+    }
   }
 
   @Override
+  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public void commit() {
     var connection = transactionContextThreadLocal.get();
     if (Objects.nonNull(connection)) {
       ThrowableOptional.sneaky(connection::commit);
       closeSafely(connection);
-      System.out.println("COMMITING");
+      transactionContextThreadLocal.remove();
     }
   }
 
   @Override
-  public void openTransaction() {
-    circuitBreaker.executeRunnable(() -> {
-      Connection connection = transactionContextThreadLocal.get();
-      try {
-        if (Objects.isNull(connection)) {
-          connection = dataSource.getConnection();
-          connection.setAutoCommit(false);
-          transactionContextThreadLocal.set(connection);
-        }
-      } catch (RuntimeException e) {
-        rollbackSafely(connection);
-        throw e;
-      } catch (SQLException e) {
-        if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
-          throw new DataSourceConnectionException(e);
-        }
-        throw new DataSourceException(e);
+  @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
+  public void openTransaction(int isolationLevel) {
+    Connection connection = transactionContextThreadLocal.get();
+    try {
+      if (Objects.isNull(connection)) {
+        connection = dataSource.getConnection();
+        connection.setAutoCommit(false);
+        connection.setTransactionIsolation(isolationLevel);
+        transactionContextThreadLocal.set(connection);
       }
-    });
+    } catch (RuntimeException e) {
+      rollbackSafely(connection);
+      transactionContextThreadLocal.remove();
+      throw e;
+    } catch (SQLException e) {
+      transactionContextThreadLocal.remove();
+      if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
+        throw new DataSourceConnectionException(e);
+      }
+      throw new DataSourceException(e);
+    }
+  }
+
+  private <T> T startTransaction(Connection connection, QueryFunction<Connection, T> body) {
+    try {
+      var result = body.apply(connection);
+      connection.commit();
+      return result;
+    } catch (RuntimeException e) {
+      rollbackSafely(connection);
+      throw e;
+    } catch (SQLException e) {
+      if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
+        throw new DataSourceConnectionException(e);
+      }
+      throw new DataSourceException(e);
+    } finally {
+      closeSafely(connection);
+    }
   }
 
   private <T> T handleConnectionAction(Connection connection, QueryFunction<Connection, T> action) {
     try {
-      if (Objects.nonNull(connection)) {
-        return action.apply(connection);
-      }
-      throw new SQLException("No active transaction");
+      return action.apply(connection);
     } catch (RuntimeException e) {
       rollbackSafely(connection);
       throw e;

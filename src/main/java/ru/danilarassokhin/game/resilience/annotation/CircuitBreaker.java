@@ -1,15 +1,14 @@
-package ru.danilarassokhin.game.sql.annotation;
+package ru.danilarassokhin.game.resilience.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.sql.Connection;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Transactional {
+public @interface CircuitBreaker {
 
-  int isolationLevel() default Connection.TRANSACTION_READ_COMMITTED;
+  String value();
 
 }

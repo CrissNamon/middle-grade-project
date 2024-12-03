@@ -3,8 +3,8 @@ package ru.danilarassokhin.game.sql.service.impl;
 import java.lang.reflect.Method;
 
 import lombok.RequiredArgsConstructor;
-import ru.danilarassokhin.game.server.ProxyMethod;
-import ru.danilarassokhin.game.server.ProxyMethodDecorator;
+import ru.danilarassokhin.game.injection.ProxyMethod;
+import ru.danilarassokhin.game.injection.ProxyMethodDecorator;
 import ru.danilarassokhin.game.sql.annotation.Transactional;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
 import tech.hiddenproject.progressive.injection.DIContainer;
@@ -18,7 +18,8 @@ public class TransactionalMethodDecorator implements ProxyMethodDecorator {
   public ProxyMethod decorate(Object realObject, Method realMethod, ProxyMethod proxyMethod) {
     return (invoker, args) -> {
       var transactionManager = diContainer.getBean(TransactionManager.class);
-      transactionManager.openTransaction();
+      var transactionData = realMethod.getAnnotation(Transactional.class);
+      transactionManager.openTransaction(transactionData.isolationLevel());
       var result = proxyMethod.invoke(realObject, args);
       transactionManager.commit();
       return result;

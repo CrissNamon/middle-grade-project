@@ -13,25 +13,22 @@ public interface PlayerRepository extends JdbcRepository<PlayerEntity, Integer> 
 
   /**
    * Checks if player with given name exists.
-   * @param ctx {@link TransactionContext}
    * @param name Player's name
    * @return true if player with given name exists
    */
-  boolean existsByName(TransactionContext ctx, String name);
+  boolean existsByName(String name);
 
   /**
    * Updates player.
-   * @param ctx {@link TransactionContext}
    * @param playerEntity {@link PlayerEntity}
    */
-  void update(TransactionContext ctx, PlayerEntity playerEntity);
+  void update(PlayerEntity playerEntity);
 
   /**
    * Updates levels for players with given ids.
-   * @param ctx {@link TransactionContext}
    * @param playerIds Ids of players for update
    */
-  void updateLevelsForIds(TransactionContext ctx, List<Integer> playerIds);
+  void updateLevelsForIds(List<Integer> playerIds);
 
   List<PlayerEntity> findAll();
 
