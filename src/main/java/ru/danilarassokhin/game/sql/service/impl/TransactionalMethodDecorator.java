@@ -9,13 +9,16 @@ import ru.danilarassokhin.game.sql.annotation.Transactional;
 import ru.danilarassokhin.game.sql.service.TransactionManager;
 import tech.hiddenproject.progressive.injection.DIContainer;
 
+/**
+ * {@link ProxyMethodDecorator} for {@link Transactional}.
+ */
 @RequiredArgsConstructor
 public class TransactionalMethodDecorator implements ProxyMethodDecorator {
 
   private final DIContainer diContainer;
 
   @Override
-  public ProxyMethod decorate(Object realObject, Method realMethod, ProxyMethod proxyMethod) {
+  public ProxyMethod decorate(Object realObject, Method realMethod, ProxyMethod proxyMethod, Object... invokeArgs) {
     return (invoker, args) -> {
       var transactionManager = diContainer.getBean(TransactionManager.class);
       var transactionData = realMethod.getAnnotation(Transactional.class);

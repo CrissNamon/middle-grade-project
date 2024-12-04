@@ -19,7 +19,7 @@ public class CircuitBreakerMethodDecorator implements ProxyMethodDecorator {
   private final DIContainer diContainer;
 
   @Override
-  public ProxyMethod decorate(Object realObject, Method realMethod, ProxyMethod proxyMethod) {
+  public ProxyMethod decorate(Object realObject, Method realMethod, ProxyMethod proxyMethod, Object... invokeArgs) {
     var circuitBreakerData = realMethod.getAnnotation(CircuitBreaker.class);
     var circuitBreaker = diContainer.getBean(circuitBreakerData.value(), io.github.resilience4j.circuitbreaker.CircuitBreaker.class);
     log.info("Applying CircuitBreaker {} on {}", circuitBreakerData.value(), realMethod);

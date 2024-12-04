@@ -60,7 +60,9 @@ public class TransactionManagerImpl implements TransactionManager {
   @CircuitBreaker(DATA_SOURCE_CIRCUIT_BREAKER_NAME)
   public <T> T startTransaction(QueryFunction<Connection, T> body) {
     try {
-      return startTransaction(dataSource.getConnection(), body);
+      var connection = dataSource.getConnection();
+      connection.setAutoCommit(false);
+      return startTransaction(connection, body);
     } catch (SQLException e) {
       if (CONNECTION_EXCEPTION_SQL_STATES.contains(e.getSQLState())) {
         throw new DataSourceConnectionException(e);

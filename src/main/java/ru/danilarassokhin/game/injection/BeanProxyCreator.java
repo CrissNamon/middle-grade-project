@@ -5,7 +5,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.danilarassokhin.game.exception.ApplicationException;
 import ru.danilarassokhin.game.util.TypeUtils;
-import tech.hiddenproject.aide.optional.ThrowableOptional;
 import tech.hiddenproject.progressive.BasicComponentManager;
 import tech.hiddenproject.progressive.ComponentCreator;
 import tech.hiddenproject.progressive.annotation.GameBean;
@@ -57,16 +55,16 @@ public class BeanProxyCreator implements ComponentCreator {
     InvocationHandler invocationHandler = (proxy, method, args) -> {
       var realMethod = beanClass.getMethod(method.getName(), method.getParameterTypes());
       var proxyMethod = createProxyMethod(realObject, realMethod);
-      return decorate(proxyMethod, realObject, realMethod).invoke(realObject, args);
+      return decorate(proxyMethod, realObject, realMethod, args).invoke(realObject, args);
     };
     return Proxy.newProxyInstance(beanClass.getClassLoader(), beanClass.getInterfaces(), invocationHandler);
   }
 
-  private ProxyMethod decorate(ProxyMethod initial, Object realObject, Method realMethod) {
+  private ProxyMethod decorate(ProxyMethod initial, Object realObject, Method realMethod, Object... args) {
     var proxyMethod = initial;
     for (ProxyMethodDecorator proxyMethodDecorator : proxyMethodDecoratorList) {
       if (proxyMethodDecorator.canBeDecorated(realObject, realMethod)) {
-        proxyMethod = proxyMethodDecorator.decorate(realObject, realMethod, proxyMethod);
+        proxyMethod = proxyMethodDecorator.decorate(realObject, realMethod, proxyMethod, args);
       }
     }
     return proxyMethod;

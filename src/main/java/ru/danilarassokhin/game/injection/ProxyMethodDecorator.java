@@ -14,7 +14,7 @@ public interface ProxyMethodDecorator {
    * @param proxyMethod {@link ProxyMethod}
    * @return Decorated {@link ProxyMethod}
    */
-  ProxyMethod decorate(Object realObject, Method realMethod, ProxyMethod proxyMethod);
+  ProxyMethod decorate(Object realObject, Method realMethod, ProxyMethod proxyMethod, Object... args);
 
   /**
    * Checks if real method can be decorated by this decorator.
