@@ -23,7 +23,9 @@ pipeline {
         stage ("publish") {
             steps {
                 script {
-                    dockerImage.push("latest")
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub') {
+                        dockerImage.push("latest")
+                    }
                 }
             }
         }
