@@ -39,7 +39,7 @@ pipeline {
                                   "template": {
                                       "metadata": {
                                           "annotations": {
-                                              "kubectl.kubernetes.io/restartedAt": ""
+                                              "build.number": "${currentBuild.number}"
                                           }
                                       }
                                   }

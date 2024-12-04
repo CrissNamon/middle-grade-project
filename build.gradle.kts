@@ -72,5 +72,6 @@ tasks.jar {
 }
 
 tasks.shadowJar {
+    mergeServiceFiles()
     archiveFileName = "application.jar"
 }
