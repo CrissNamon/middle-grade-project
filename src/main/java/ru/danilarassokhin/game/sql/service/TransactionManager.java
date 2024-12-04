@@ -1,6 +1,9 @@
 package ru.danilarassokhin.game.sql.service;
 
 import java.sql.Connection;
+import java.util.function.Supplier;
+
+import tech.hiddenproject.aide.optional.Action;
 
 /**
  * Service to work with JDBC transactions.
@@ -44,5 +47,14 @@ public interface TransactionManager {
    * @param <T> Type of result
    */
   <T> T fetchInTransaction(int isolationLevel, QueryFunction<TransactionContext, T> body);
+
+  /**
+   * Opens new transaction and executes action in it.
+   * @param isolationLevel Transaction isolation level
+   * @param action Action to execute
+   * @return Result of action
+   * @param <T> Type of result
+   */
+  <T> T executeInTransaction(int isolationLevel, Supplier<T> action);
 
 }

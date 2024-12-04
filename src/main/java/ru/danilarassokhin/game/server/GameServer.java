@@ -1,14 +1,19 @@
 package ru.danilarassokhin.game.server;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import ru.danilarassokhin.game.config.ApplicationConfig;
+import ru.danilarassokhin.game.injection.BeanProxyCreator;
+import ru.danilarassokhin.game.resilience.CacheableMethodDecorator;
+import ru.danilarassokhin.game.resilience.CircuitBreakerMethodDecorator;
 import ru.danilarassokhin.game.security.LoggerHttpFilter;
 import ru.danilarassokhin.game.server.netty.HttpServerInitializer;
 import ru.danilarassokhin.game.server.netty.NettyServer;
+import ru.danilarassokhin.game.sql.service.impl.TransactionalMethodDecorator;
 import ru.danilarassokhin.game.util.PropertiesFactory;
 import ru.danilarassokhin.game.util.PropertyNames;
 import tech.hiddenproject.progressive.BasicComponentManager;
@@ -20,8 +25,11 @@ public class GameServer {
 
   public static void start(Class<?>... configurations) {
     var diContainer = BasicComponentManager.getDiContainer();
+    var transactionalMethodDecorator = new TransactionalMethodDecorator(diContainer);
+    var circuitBreakerMethodDecorator = new CircuitBreakerMethodDecorator(diContainer);
+    var cacheableMethodDecorator = new CacheableMethodDecorator(diContainer);
+    new BeanProxyCreator(List.of(cacheableMethodDecorator, transactionalMethodDecorator, circuitBreakerMethodDecorator));
     Arrays.stream(configurations).forEach(diContainer::loadConfiguration);
-
     var propertiesFactory = diContainer.getBean(PropertiesFactory.class);
     var dispatcherController = diContainer.getBean(DispatcherController.class);
     var loggingHandler = new LoggingHandler(LogLevel.DEBUG);

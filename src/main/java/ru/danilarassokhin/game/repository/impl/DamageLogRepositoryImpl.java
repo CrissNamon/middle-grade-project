@@ -6,7 +6,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.entity.DamageLogEntity;
 import ru.danilarassokhin.game.repository.DamageLogRepository;
-import ru.danilarassokhin.game.sql.service.TransactionContext;
+import ru.danilarassokhin.game.sql.service.TransactionManager;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
@@ -27,34 +27,32 @@ public class DamageLogRepositoryImpl implements DamageLogRepository {
   private final String FIND_ACTIVE_PLAYERS =
       String.format("SELECT DISTINCT player_id FROM %s WHERE dungeon_id = ? AND active = true;", DamageLogEntity.TABLE_NAME);
 
+  private final TransactionManager transactionManager;
+
   @Override
-  public Integer save(TransactionContext ctx, DamageLogEntity entity) {
-    return ctx.query(SAVE_QUERY, entity.dungeonId(), entity.playerId(), entity.damage())
-        .fetchOne(Integer.class);
+  public Integer save(DamageLogEntity entity) {
+    return transactionManager.fetchInTransaction(ctx -> ctx.query(SAVE_QUERY, entity.dungeonId(), entity.playerId(), entity.damage())
+        .fetchOne(Integer.class));
   }
 
   @Override
-  public Optional<DamageLogEntity> findById(TransactionContext ctx, Integer id) {
-    return Optional.ofNullable(ctx.query(FIND_BY_ID_QUERY, id).fetchOne(DamageLogEntity.class));
+  public Optional<DamageLogEntity> findById(Integer id) {
+    return transactionManager.fetchInTransaction(ctx -> Optional.ofNullable(
+        ctx.query(FIND_BY_ID_QUERY, id).fetchOne(DamageLogEntity.class)));
   }
 
   @Override
-  public List<Integer> findPlayersForActiveDungeon(TransactionContext ctx, Integer dungeonId) {
-    return ctx.query(FIND_ACTIVE_PLAYERS, dungeonId).fetchInto(Integer.class);
+  public List<Integer> findPlayersForActiveDungeon(Integer dungeonId) {
+    return transactionManager.fetchInTransaction(ctx -> ctx.query(FIND_ACTIVE_PLAYERS, dungeonId).fetchInto(Integer.class));
   }
 
   @Override
-  public boolean existsById(TransactionContext ctx, Integer id) {
-    return ctx.query(EXISTS_BY_ID_QUERY, id).fetchOne(Boolean.class);
+  public Long countDamage(Integer dungeonId) {
+    return transactionManager.fetchInTransaction(ctx -> ctx.query(COUNT_DMG_QUERY, dungeonId).fetchOne(Long.class));
   }
 
   @Override
-  public Long countDamage(TransactionContext ctx, Integer dungeonId) {
-    return ctx.query(COUNT_DMG_QUERY, dungeonId).fetchOne(Long.class);
-  }
-
-  @Override
-  public void revive(TransactionContext ctx, Integer dungeonId) {
-    ctx.query(REVIVE_QUERY, dungeonId).execute();
+  public void revive(Integer dungeonId) {
+    transactionManager.doInTransaction(ctx -> ctx.query(REVIVE_QUERY, dungeonId).execute());
   }
 }
