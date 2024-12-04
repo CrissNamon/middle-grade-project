@@ -27,6 +27,7 @@ public class PropertiesFactoryImpl implements PropertiesFactory {
     try {
       log.info("Loading util properties from: {}", PROPERTIES_PATH);
       System.getenv().forEach((property, value) -> environmentProperties.put(ENV_PROPERTIES_PREFIX + property + ENV_PROPERTIES_POSTFIX, value));
+      System.getProperties().forEach((property, value) -> environmentProperties.put(ENV_PROPERTIES_PREFIX + property + ENV_PROPERTIES_POSTFIX, value.toString()));
       applicationProperties.load(PropertiesFactoryImpl.class.getResourceAsStream(PROPERTIES_PATH));
     } catch (Exception e) {
       throw new ApplicationException("Failed to load properties file", e);

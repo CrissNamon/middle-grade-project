@@ -10,7 +10,7 @@ pipeline {
     stages {
 		    stage ("build") {
         	  steps {
-                sh 'gradle test jar'
+                sh 'gradle test shadowJar'
             }
         }
         stage ("build docker image") {
