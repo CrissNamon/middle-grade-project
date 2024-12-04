@@ -65,6 +65,7 @@ public class MarketServiceImpl implements MarketService {
       throw new ApplicationException("Not enough items");
     }
     if (player.getMoney() >= item.price()) {
+      playerRepository.update(player.addMoney(-item.price()));
       playerItemRepository.save(new PlayerItem(null, playerId, item.itemCode(), 1));
       marketRepository.decreaseItem(itemId);
       return;
