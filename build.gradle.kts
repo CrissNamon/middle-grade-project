@@ -76,7 +76,7 @@ tasks {
     val fatJar = register<Jar>("fatJar") {
         dependsOn.addAll(listOf("compileJava", "processResources")) // We need this for Gradle optimization to work
         archiveFileName = "application.jar"
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         manifest { attributes(mapOf("Main-Class" to application.mainClass)) } // Provided we set it up in the application plugin configuration
         val sourcesMain = sourceSets.main.get()
         val contents = configurations.runtimeClasspath.get()

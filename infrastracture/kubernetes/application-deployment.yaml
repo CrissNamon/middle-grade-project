@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    app: api
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: kpekepsalt/middle-grade-project:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: CAMUNDA_TASK_LIST_LOGIN
+              value: "demo"
+            - name: CAMUNDA_TASK_LIST_PASSWORD
+              value: "demo"
+            - name: DATASOURCE_USER
+              value: "postgres"
+            - name: DATASOURCE_PASSWORD
+              value: "1"

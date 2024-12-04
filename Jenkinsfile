@@ -29,5 +29,24 @@ pipeline {
                 }
             }
         }
+        stage ("deploy") {
+            steps {
+                script {
+                    sh """curl --location --request PATCH 'http://host.docker.internal:9991/apis/apps/v1/namespaces/default/deployments/app' \
+                          --header 'Content-Type: application/merge-patch+json' \
+                          --data '{
+                              "spec": {
+                                  "template": {
+                                      "metadata": {
+                                          "annotations": {
+                                              "kubectl.kubernetes.io/restartedAt": ""
+                                          }
+                                      }
+                                  }
+                              }
+                          }'"""
+                }
+            }
+        }
     }
 }
