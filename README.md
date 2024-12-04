@@ -16,13 +16,14 @@ Simple game http server based on Netty for job attestation on Middle Java grade.
 - Camunda Platform 8
 - Resilience4j
 - Guava
+- Jenkins
+- Kubernetes
 
 ## Roadmap
-
-Main:
 
 - Http server based on Netty ✅
 - JDBC (transactions, isolation levels, advisory locks) ✅
 - Camunda ✅
 - Fault tolerance (Circuit breaker, bloom filter, caching) ✅
-- CI/CD ❌
+- Proxy objects ✅
+- CI/CD ✅

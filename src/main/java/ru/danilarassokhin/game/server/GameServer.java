@@ -16,6 +16,7 @@ import ru.danilarassokhin.game.server.netty.NettyServer;
 import ru.danilarassokhin.game.sql.service.impl.TransactionalMethodDecorator;
 import ru.danilarassokhin.game.util.PropertiesFactory;
 import ru.danilarassokhin.game.util.PropertyNames;
+import ru.danilarassokhin.game.util.impl.ReflectionsPackageScanner;
 import tech.hiddenproject.progressive.BasicComponentManager;
 import tech.hiddenproject.progressive.basic.manager.BasicGamePublisher;
 
@@ -25,11 +26,15 @@ public class GameServer {
 
   public static void start(Class<?>... configurations) {
     var diContainer = BasicComponentManager.getDiContainer();
+    
     var transactionalMethodDecorator = new TransactionalMethodDecorator(diContainer);
     var circuitBreakerMethodDecorator = new CircuitBreakerMethodDecorator(diContainer);
     var cacheableMethodDecorator = new CacheableMethodDecorator(diContainer);
     new BeanProxyCreator(List.of(cacheableMethodDecorator, transactionalMethodDecorator, circuitBreakerMethodDecorator));
-    Arrays.stream(configurations).forEach(diContainer::loadConfiguration);
+    
+    var packageScanner = new ReflectionsPackageScanner();
+    Arrays.stream(configurations).forEach(c -> diContainer.loadConfiguration(c, packageScanner));
+    
     var propertiesFactory = diContainer.getBean(PropertiesFactory.class);
     var dispatcherController = diContainer.getBean(DispatcherController.class);
     var loggingHandler = new LoggingHandler(LogLevel.DEBUG);

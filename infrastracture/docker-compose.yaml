@@ -1,3 +1,4 @@
+version: '3.8'
 # While the Docker images themselves are supported for production usage,
 # this docker-compose.yaml is designed to be used by developers to run
 # an environment locally. It is not designed to be used in production.
@@ -118,9 +119,38 @@ services:
     networks:
       - camunda-platform
 
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=nlmkend
+      - POSTGRES_USER=${JDBC_USER}
+      - POSTGRES_PASSWORD=${JDBC_PASSWORD}
+    volumes:
+      - ${PWD}/.db/pgdata:/var/lib/postgresql/data
+      - ${PWD}/.db/pginitdb/:/docker-entrypoint-initdb.d
+    tmpfs:
+      - /tmp
+
+  jenkins:
+    image: crissnamon.github.io/jenkins-local
+    build:
+      context: .
+      dockerfile: jenkins.Dockerfile
+    ports:
+      - "9999:8080"
+      - "9990:50000"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: "host"
+
 volumes:
   zeebe:
   elastic:
+  jenkins-data:
 
 networks:
   camunda-platform:
+

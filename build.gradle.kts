@@ -1,4 +1,5 @@
 plugins {
+    id("com.gradleup.shadow") version "9.0.0-beta2"
     id("java")
     application
     id("io.freefair.lombok") version "8.10"
@@ -13,12 +14,14 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 dependencies {
     // Dependency Injection
     implementation("tech.hiddenproject:progressive-api:0.7.11")
     implementation("tech.hiddenproject:progressive-injection:0.7.11")
+    implementation("org.reflections:reflections:0.10.2")
     //Web
     implementation("io.netty:netty-all:4.1.113.Final")
     implementation("com.fasterxml.jackson.core:jackson-core:2.17.2")
@@ -57,4 +60,19 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile::class).all {
+    options.compilerArgs.add("--enable-preview")
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "ru.danilarassokhin.game.GameApplication"
+    }
+}
+
+tasks.shadowJar {
+    mergeServiceFiles()
+    archiveFileName = "application.jar"
 }

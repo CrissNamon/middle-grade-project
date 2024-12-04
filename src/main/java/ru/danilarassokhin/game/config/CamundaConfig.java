@@ -26,14 +26,18 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 public class CamundaConfig {
 
   public static final String CAMUNDA_DEPLOYMENTS_PROPERTY = "camunda.deployments";
+  public static final String CAMUNDA_ZEEBE_URL_PROPERTY = "camunda.zeebe.url";
   public static final String CAMUNDA_TASK_LIST_URL_PROPERTY = "camunda.tasklist.url";
   public static final String CAMUNDA_TASK_LIST_LOGIN_PROPERTY = "camunda.tasklist.login";
   public static final String CAMUNDA_TASK_LIST_PASSWORD_PROPERTY = "camunda.tasklist.password";
   public static final String CAMUNDA_PROCESS_ID_PROPERTY = "camunda.process-id";
 
   @GameBean(order = 1)
-  public ZeebeClient zeebeClient() {
-    return ZeebeClient.newClientBuilder().usePlaintext().build();
+  public ZeebeClient zeebeClient(PropertiesFactory propertiesFactory) {
+    return ZeebeClient.newClientBuilder()
+        .gatewayAddress(propertiesFactory.getAsString(CAMUNDA_ZEEBE_URL_PROPERTY).orElseThrow())
+        .usePlaintext()
+        .build();
   }
 
   @GameBean
