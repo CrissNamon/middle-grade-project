@@ -153,3 +153,4 @@ volumes:
 
 networks:
   camunda-platform:
+
