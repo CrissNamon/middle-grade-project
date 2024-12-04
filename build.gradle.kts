@@ -70,3 +70,7 @@ tasks.jar {
         attributes["Main-Class"] = "ru.danilarassokhin.game.GameApplication"
     }
 }
+
+tasks.shadowJar {
+    archiveFileName = "application.jar"
+}
