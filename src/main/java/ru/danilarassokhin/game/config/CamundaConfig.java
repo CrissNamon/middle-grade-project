@@ -35,6 +35,7 @@ public class CamundaConfig {
   @GameBean(order = 1)
   public ZeebeClient zeebeClient(PropertiesFactory propertiesFactory) {
     return ZeebeClient.newClientBuilder()
+        .gatewayAddress(propertiesFactory.getAsString(CAMUNDA_ZEEBE_URL_PROPERTY).orElseThrow())
         .usePlaintext()
         .build();
   }
