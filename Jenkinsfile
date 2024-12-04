@@ -23,7 +23,7 @@ pipeline {
         stage ("publish") {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub') {
+                    docker.withRegistry('', 'docker-hub') {
                         dockerImage.push("latest")
                     }
                 }
