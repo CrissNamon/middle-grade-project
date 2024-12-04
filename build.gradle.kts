@@ -21,6 +21,7 @@ dependencies {
     // Dependency Injection
     implementation("tech.hiddenproject:progressive-api:0.7.11")
     implementation("tech.hiddenproject:progressive-injection:0.7.11")
+    implementation("org.reflections:reflections:0.10.2")
     //Web
     implementation("io.netty:netty-all:4.1.113.Final")
     implementation("com.fasterxml.jackson.core:jackson-core:2.17.2")

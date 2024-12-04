@@ -11,6 +11,7 @@ import ru.danilarassokhin.game.server.netty.HttpServerInitializer;
 import ru.danilarassokhin.game.server.netty.NettyServer;
 import ru.danilarassokhin.game.util.PropertiesFactory;
 import ru.danilarassokhin.game.util.PropertyNames;
+import ru.danilarassokhin.game.util.impl.ReflectionsPackageScanner;
 import tech.hiddenproject.progressive.BasicComponentManager;
 import tech.hiddenproject.progressive.basic.manager.BasicGamePublisher;
 
@@ -20,7 +21,8 @@ public class GameServer {
 
   public static void start(Class<?>... configurations) {
     var diContainer = BasicComponentManager.getDiContainer();
-    Arrays.stream(configurations).forEach(diContainer::loadConfiguration);
+    var packageScanner = new ReflectionsPackageScanner();
+    Arrays.stream(configurations).forEach(c -> diContainer.loadConfiguration(c, packageScanner));
 
     var propertiesFactory = diContainer.getBean(PropertiesFactory.class);
     var dispatcherController = diContainer.getBean(DispatcherController.class);
