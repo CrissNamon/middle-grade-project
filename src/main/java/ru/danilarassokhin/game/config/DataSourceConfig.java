@@ -3,6 +3,7 @@ package ru.danilarassokhin.game.config;
 import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
@@ -14,6 +15,7 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 
 @Configuration
 @ComponentScan("ru.danilarassokhin.game.sql.service.impl")
+@Slf4j
 public class DataSourceConfig {
 
   public static final Integer TRANSACTION_DEFAULT_RETRY_COUNT = 10;
@@ -31,6 +33,7 @@ public class DataSourceConfig {
     SLF4JQueryLoggingListener loggingListener = new SLF4JQueryLoggingListener();
     loggingListener.setQueryLogEntryCreator(new DefaultQueryLogEntryCreator());
     var dataSource = new HikariDataSource();
+    log.info("APP VERSION: {}", propertiesFactory.getAsString("app.version").orElseThrow());
     dataSource.setMinimumIdle(propertiesFactory.getAsInt(HIKARI_DATASOURCE_MINIMUM_IDLE_PROPERTY).orElseThrow());
     dataSource.setMaximumPoolSize(propertiesFactory.getAsInt(HIKARI_DATASOURCE_MAXIMUM_POOL_SIZE_PROPERTY).orElseThrow());
     dataSource.setJdbcUrl(propertiesFactory.getAsString(HIKARI_DATASOURCE_JDBC_URL_PROPERTY).orElseThrow());

@@ -36,7 +36,7 @@ spec:
             - name: DATASOURCE_PASSWORD
               value: "1"
             - name: DATASOURCE_URL
-              value: "jdbc:postgresql://localhost:5432/nlmkend"
+              value: "jdbc:postgresql://host.docker.internal:5432/nlmkend"
             - name: TASK_LIST_URL
               value: "http://tasklist"
             - name: ZEEBE_URL
