@@ -3,7 +3,7 @@ plugins {
     id("io.freefair.lombok") version "8.10"
 }
 
-group = "ru.danilarassokhin"
+group = "ru.danilarassokhin.utils"
 version = "1.0-SNAPSHOT"
 
 repositories {

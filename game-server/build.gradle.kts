@@ -9,7 +9,7 @@ application {
     mainClass = "ru.danilarassokhin.game.GameApplication"
 }
 
-group = "ru.danilarassokhin"
+group = "ru.danilarassokhin.game"
 version = "1.0-SNAPSHOT"
 
 repositories {
