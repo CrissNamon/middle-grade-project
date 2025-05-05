@@ -3,7 +3,7 @@ package ru.danilarassokhin.game.util;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import ru.danilarassokhin.game.util.impl.PropertiesFactoryImpl;
+import ru.danilarassokhin.util.impl.PropertiesFactoryImpl;
 
 public class PropertyFactoryImplTest {
 

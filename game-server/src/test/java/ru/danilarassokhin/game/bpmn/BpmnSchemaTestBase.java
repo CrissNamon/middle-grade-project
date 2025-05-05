@@ -7,7 +7,7 @@ import io.camunda.zeebe.process.test.api.ZeebeTestEngine;
 import io.camunda.zeebe.process.test.extension.ZeebeProcessTest;
 import org.junit.jupiter.api.BeforeEach;
 import ru.danilarassokhin.game.bpmn.util.BpmnTestProcessInstance;
-import ru.danilarassokhin.game.util.impl.PropertiesFactoryImpl;
+import ru.danilarassokhin.util.impl.PropertiesFactoryImpl;
 import ru.danilarassokhin.util.PropertiesFactory;
 
 @ZeebeProcessTest
