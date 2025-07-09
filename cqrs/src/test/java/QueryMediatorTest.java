@@ -3,20 +3,20 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import ru.danilarassokhin.cqrs.query.Query;
-import ru.danilarassokhin.cqrs.query.QueryExecutor;
+import ru.danilarassokhin.cqrs.query.QueryMediator;
 import ru.danilarassokhin.cqrs.query.QueryHandler;
-import ru.danilarassokhin.cqrs.query.impl.QueryExecutorImpl;
+import ru.danilarassokhin.cqrs.query.impl.QueryMediatorImpl;
 
-public class QueryExecutorTest {
+public class QueryMediatorTest {
 
-  private final QueryExecutor queryExecutor = new QueryExecutorImpl(
+  private final QueryMediator queryMediator = new QueryMediatorImpl(
       List.of(new FindByIdQueryHandler())
   );
 
   @Test
   public void itShouldExecuteQueryAndReturnResult() {
     Integer input = 1;
-    var result = queryExecutor.execute(new FindByIdQuery(input));
+    var result = queryMediator.execute(new FindByIdQuery(input));
     Assertions.assertEquals(input.toString(), result);
   }
 

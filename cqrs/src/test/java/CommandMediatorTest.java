@@ -3,13 +3,13 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import ru.danilarassokhin.cqrs.command.Command;
-import ru.danilarassokhin.cqrs.command.CommandExecutor;
+import ru.danilarassokhin.cqrs.command.CommandMediator;
 import ru.danilarassokhin.cqrs.command.CommandHandler;
-import ru.danilarassokhin.cqrs.command.impl.CommandExecutorImpl;
+import ru.danilarassokhin.cqrs.command.impl.CommandMediatorImpl;
 
-public class CommandExecutorTest {
+public class CommandMediatorTest {
 
-  private final CommandExecutor commandExecutor = new CommandExecutorImpl(
+  private final CommandMediator commandMediator = new CommandMediatorImpl(
       List.of(new ThrowErrorCommandHandler())
   );
 
@@ -17,7 +17,7 @@ public class CommandExecutorTest {
   public void itShouldExecuteCommandSuccessfully() {
     Integer input = 1;
     Assertions.assertThrows(RuntimeException.class, () -> {
-      commandExecutor.execute(new ThrowErrorCommand(input));
+      commandMediator.execute(new ThrowErrorCommand(input));
     });
   }
 
