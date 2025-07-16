@@ -2,7 +2,6 @@ package ru.danilarassokhin.notification.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
 import ru.danilarassokhin.notification.entity.MailNotificationEntity;
 import ru.danilarassokhin.notification.message.dto.CreateMailDto;
 
