@@ -9,11 +9,9 @@ import ru.danilarassokhin.notification.message.dto.CreateMailDto;
 @Mapper(componentModel = "spring")
 public interface MailMapper {
 
-  @Mappings({
-      @Mapping(target = "isProcessed", ignore = true),
-      @Mapping(target = "id", ignore = true),
-      @Mapping(target = "dateTime", ignore = true)
-  })
+  @Mapping(target = "processed", ignore = true)
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "dateTime", ignore = true)
   MailNotificationEntity createMailDtoToEntity(CreateMailDto dto);
 
 }
