@@ -16,7 +16,25 @@ spring:
     default-schema: notification
     schemas: notification
     url: jdbc:postgresql://localhost:5432/nlmkend
+  kafka:
+    consumer:
+      bootstrap-servers: 127.0.0.1:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      auto-commit: false
+      max-poll-records: 1
+      group-id: mail-sender
+    producer:
+      bootstrap-servers: 127.0.0.1:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    listener:
+      ack-mode: manual-immediate
+
 
 mail:
   timer: 300000
   batch-size: 10
+  kafka:
+    topic: mail.notification.000
