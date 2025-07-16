@@ -1,10 +1,12 @@
 package ru.danilarassokhin.game.util;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.function.Supplier;
 import ru.danilarassokhin.injection.exception.ApplicationException;
 
 import tech.hiddenproject.aide.optional.Action;
+import tech.hiddenproject.aide.optional.ThrowableOptional;
 
 public class AwaitUtil {
 
@@ -48,6 +50,11 @@ public class AwaitUtil {
       action.make();
       return null;
     }, onError, errors);
+  }
+
+  public static void waitAndDo(Action action, Duration duration) {
+    ThrowableOptional.sneaky(() -> Thread.sleep(duration));
+    action.make();
   }
 
 }

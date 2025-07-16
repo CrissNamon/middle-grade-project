@@ -47,8 +47,12 @@ public class DataSourceConfig {
     var flyway = Flyway.configure()
         .dataSource(dataSource)
         .locations(propertiesFactory.getAsString(FLYWAY_LOCATIONS_PROPERTY).orElseThrow())
+        .defaultSchema("game")
+        .schemas("game")
+        .baselineOnMigrate(true)
         .load();
     flyway.migrate();
+    System.out.println("MIGRATING");
     return flyway;
   }
 

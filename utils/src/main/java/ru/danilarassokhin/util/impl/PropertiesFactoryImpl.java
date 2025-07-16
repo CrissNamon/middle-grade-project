@@ -50,6 +50,19 @@ public class PropertiesFactoryImpl implements PropertiesFactory {
     return applicationProperties;
   }
 
+  @Override
+  public Properties getAllForPrefix(String prefix) {
+    var properties = new Properties();
+    applicationProperties.stringPropertyNames().forEach(name -> {
+      if (name.startsWith(prefix)) {
+        var newName = name.replace(prefix + ".", "");
+        var value = applicationProperties.getProperty(name);
+        properties.put(newName, value);
+      }
+    });
+    return properties;
+  }
+
   private String getValueFromEnv(String value) {
     if (value.startsWith(ENV_PROPERTIES_PREFIX)) {
       return environmentProperties.get(value);

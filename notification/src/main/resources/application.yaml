@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8098
 
 spring:
   application:
@@ -25,13 +25,17 @@ spring:
       auto-commit: false
       max-poll-records: 1
       group-id: mail-sender
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: 'ru.danilarassokhin.*'
     producer:
       bootstrap-servers: 127.0.0.1:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     listener:
       ack-mode: manual-immediate
-
 
 mail:
   timer: 300000

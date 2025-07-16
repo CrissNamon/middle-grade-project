@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 import ru.danilarassokhin.game.config.CamundaConfig;
 import ru.danilarassokhin.game.entity.camunda.CamundaAction;
-import ru.danilarassokhin.game.worker.CamundaJobWorker;
-import ru.danilarassokhin.game.worker.CamundaWorkerContainer;
+import ru.danilarassokhin.game.worker.camunda.CamundaJobWorker;
+import ru.danilarassokhin.game.worker.camunda.CamundaWorkerContainer;
 import ru.danilarassokhin.util.PropertiesFactory;
 
 @Slf4j

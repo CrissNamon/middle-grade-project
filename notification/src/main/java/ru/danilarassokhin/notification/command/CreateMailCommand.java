@@ -1,8 +1,8 @@
 package ru.danilarassokhin.notification.command;
 
 import ru.danilarassokhin.cqrs.command.Command;
-import ru.danilarassokhin.notification.message.dto.CreateMailDto;
+import ru.danilarassokhin.messaging.model.CreateMailDto;
 
-public record CreateMailCommand(CreateMailDto dto) implements Command<CreateMailDto> {
+public record CreateMailCommand(ru.danilarassokhin.messaging.model.CreateMailDto dto) implements Command<CreateMailDto> {
 
 }
