@@ -4,6 +4,6 @@ import reactor.core.publisher.Flux;
 import ru.danilarassokhin.cqrs.query.Query;
 import ru.danilarassokhin.notification.entity.MailNotificationEntity;
 
-public record FindOneForSendQuery(int limit) implements Query<Void, Flux<MailNotificationEntity>> {
+public record FindOneForSendQuery(Integer limit) implements Query<Integer, Flux<MailNotificationEntity>> {
 
 }

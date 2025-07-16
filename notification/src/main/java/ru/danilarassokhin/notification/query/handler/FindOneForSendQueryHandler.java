@@ -10,7 +10,7 @@ import ru.danilarassokhin.notification.repository.query.MailNotificationQueryRep
 
 @Component
 @RequiredArgsConstructor
-public class FindOneForSendQueryHandler implements QueryHandler<Void, Flux<MailNotificationEntity>, FindOneForSendQuery> {
+public class FindOneForSendQueryHandler implements QueryHandler<Integer, Flux<MailNotificationEntity>, FindOneForSendQuery> {
 
   private final MailNotificationQueryRepository repository;
 
