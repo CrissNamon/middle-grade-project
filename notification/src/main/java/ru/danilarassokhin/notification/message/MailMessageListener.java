@@ -9,10 +9,11 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 import ru.danilarassokhin.cqrs.command.CommandMediator;
 import ru.danilarassokhin.notification.command.CreateMailCommand;
 import ru.danilarassokhin.notification.exception.MailListenerException;
-import ru.danilarassokhin.notification.message.dto.CreateMailDto;
+import ru.danilarassokhin.messaging.dto.CreateMailDto;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class MailMessageListener {
                   backoff = @Backoff(delay = 3000, multiplier = 1.5, maxDelay = 15000))
   @KafkaListener(topics = "${mail.kafka.topic}")
   @Transactional
-  public void consume(@Payload CreateMailDto createMailDto, Acknowledgment acknowledgment) {
+  public Mono<Void> consume(@Payload CreateMailDto createMailDto, Acknowledgment acknowledgment) {
     try {
       log.info("Received message: {}", createMailDto);
       commandMediator.execute(new CreateMailCommand(createMailDto));
@@ -34,6 +35,7 @@ public class MailMessageListener {
       log.error("Error occurred during message processing", e);
       throw new MailListenerException(e);
     }
+    return Mono.empty();
   }
 
 }

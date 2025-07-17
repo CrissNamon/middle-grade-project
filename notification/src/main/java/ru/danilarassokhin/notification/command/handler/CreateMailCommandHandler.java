@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.danilarassokhin.cqrs.command.CommandHandler;
 import ru.danilarassokhin.notification.command.CreateMailCommand;
 import ru.danilarassokhin.notification.mapper.MailMapper;
-import ru.danilarassokhin.notification.message.dto.CreateMailDto;
+import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.notification.repository.command.MailNotificationCommandRepository;
 
 @Component
@@ -17,7 +17,7 @@ public class CreateMailCommandHandler implements CommandHandler<CreateMailDto, C
 
   @Override
   public Void handle(CreateMailCommand action) {
-    repository.save(mapper.createMailDtoToEntity(action.dto()));
+    repository.save(mapper.createMailDtoToEntity(action.dto())).subscribe();
     return null;
   }
 

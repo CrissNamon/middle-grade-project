@@ -3,7 +3,7 @@ package ru.danilarassokhin.notification.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.danilarassokhin.notification.entity.MailNotificationEntity;
-import ru.danilarassokhin.notification.message.dto.CreateMailDto;
+import ru.danilarassokhin.messaging.dto.CreateMailDto;
 
 @Mapper(componentModel = "spring")
 public interface MailMapper {
