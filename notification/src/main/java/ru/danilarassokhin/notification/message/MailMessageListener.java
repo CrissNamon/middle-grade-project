@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import ru.danilarassokhin.cqrs.command.CommandMediator;
-import ru.danilarassokhin.messaging.model.CreateMailDto;
+import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.notification.command.CreateMailCommand;
 import ru.danilarassokhin.notification.exception.MailListenerException;
 

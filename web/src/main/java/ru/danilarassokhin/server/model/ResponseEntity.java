@@ -4,7 +4,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import ru.danilarassokhin.server.HttpRequestHandler;
 
 /**
- * Response model for {@link HttpRequestHandler}.
+ * Response dto for {@link HttpRequestHandler}.
  *
  * @param status {@link HttpResponseStatus}
  * @param body Response body

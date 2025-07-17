@@ -3,7 +3,7 @@ package ru.danilarassokhin.game.config;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import ru.danilarassokhin.game.mapper.MailMapper;
-import ru.danilarassokhin.messaging.model.CreateMailDto;
+import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.game.repository.MailRepository;
 import ru.danilarassokhin.game.worker.kafka.KafkaMailSender;
 import ru.danilarassokhin.game.worker.kafka.KafkaMailSenderImpl;

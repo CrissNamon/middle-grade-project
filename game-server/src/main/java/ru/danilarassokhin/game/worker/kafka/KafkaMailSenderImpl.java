@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import ru.danilarassokhin.game.mapper.MailMapper;
-import ru.danilarassokhin.messaging.model.CreateMailDto;
+import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.game.repository.MailRepository;
 import ru.danilarassokhin.injection.exception.ApplicationException;
 import ru.danilarassokhin.sql.annotation.Transactional;

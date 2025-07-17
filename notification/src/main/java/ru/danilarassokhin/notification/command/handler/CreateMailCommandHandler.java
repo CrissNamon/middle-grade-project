@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.danilarassokhin.cqrs.command.CommandHandler;
 import ru.danilarassokhin.notification.command.CreateMailCommand;
 import ru.danilarassokhin.notification.mapper.MailMapper;
-import ru.danilarassokhin.messaging.model.CreateMailDto;
+import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.notification.repository.command.MailNotificationCommandRepository;
 
 @Component

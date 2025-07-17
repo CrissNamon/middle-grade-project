@@ -1,4 +1,4 @@
-package ru.danilarassokhin.messaging.model;
+package ru.danilarassokhin.messaging.dto;
 
 public record CreateMailDto(String email, String text) {
 

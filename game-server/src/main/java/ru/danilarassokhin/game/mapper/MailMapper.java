@@ -3,7 +3,7 @@ package ru.danilarassokhin.game.mapper;
 import org.mapstruct.AnnotateWith;
 import org.mapstruct.Mapper;
 import ru.danilarassokhin.game.entity.MailEntity;
-import ru.danilarassokhin.messaging.model.CreateMailDto;
+import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
 @Mapper
