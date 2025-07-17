@@ -49,6 +49,7 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
     //Kafka
     implementation("org.springframework.kafka:spring-kafka:4.0.0-M2")
+    implementation(project(":messaging"))
     //Testing
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

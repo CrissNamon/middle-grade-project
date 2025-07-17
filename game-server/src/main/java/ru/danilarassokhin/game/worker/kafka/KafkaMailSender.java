@@ -4,6 +4,4 @@ public interface KafkaMailSender {
 
   void schedule();
 
-  void injectSelf(KafkaMailSender kafkaMailSender);
-
 }

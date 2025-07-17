@@ -15,9 +15,11 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 @Configuration
 public class KafkaConfig {
 
+  private static final String KAFKA_PROPERTY_PREFIX = "kafka";
+
   @GameBean(order = 1)
   public Producer<String, CreateMailDto> producer(PropertiesFactory propertiesFactory) {
-    return new KafkaProducer<>(propertiesFactory.getAllForPrefix("kafka"));
+    return new KafkaProducer<>(propertiesFactory.getAllForPrefix(KAFKA_PROPERTY_PREFIX));
   }
 
   @GameBean(order = 2)
@@ -27,8 +29,9 @@ public class KafkaConfig {
       MailMapper mapper,
       PropertiesFactory propertiesFactory
   ) {
-    KafkaMailSender sender = BasicComponentManager.getComponentCreator().create(KafkaMailSenderImpl.class, mailRepository, producer, mapper, propertiesFactory);
-    sender.injectSelf(sender);
+    KafkaMailSender sender = BasicComponentManager.getComponentCreator()
+        .create(KafkaMailSenderImpl.class, mailRepository, producer, mapper, propertiesFactory);
+    sender.schedule();
     return sender;
   }
 

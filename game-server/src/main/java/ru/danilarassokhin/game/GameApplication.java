@@ -21,7 +21,6 @@ import ru.danilarassokhin.server.config.WebConfig;
 import ru.danilarassokhin.sql.config.SqlConfig;
 import ru.danilarassokhin.sql.service.impl.TransactionalMethodDecorator;
 import tech.hiddenproject.progressive.BasicComponentManager;
-import tech.hiddenproject.progressive.basic.manager.BasicGamePublisher;
 
 public class GameApplication {
 
@@ -39,8 +38,7 @@ public class GameApplication {
                                  DataSourceConfig.class, CamundaConfig.class, WebConfig.class,
                                  HttpConfig.class, KafkaConfig.class);
     configurations.forEach(c -> diContainer.loadConfiguration(c, packageScanner));
-    BasicGamePublisher.getInstance().sendTo("application.ready", null);
-    System.out.println("SENT TO application.ready");
+
     GameServer.start(diContainer, Set.of(new LoggerHttpFilter()));
   }
 
