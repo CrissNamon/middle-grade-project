@@ -13,9 +13,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import ru.danilarassokhin.cqrs.command.CommandMediator;
+import ru.danilarassokhin.cqrs.query.QueryMediator;
+import ru.danilarassokhin.notification.command.SendMailCommand;
 import ru.danilarassokhin.notification.entity.MailNotificationEntity;
-import ru.danilarassokhin.notification.repository.MailNotificationRepository;
-import ru.danilarassokhin.notification.service.MailNotificationService;
+import ru.danilarassokhin.notification.query.FindOneForSendQuery;
 
 @Component
 @RequiredArgsConstructor
@@ -25,9 +27,9 @@ public class MailNotificationWorker {
   private static final int THREADS_COUNT = 2;
   private static final int QUEUE_SIZE = 2;
 
-  private final MailNotificationRepository mailNotificationRepository;
-  private final MailNotificationService mailNotificationService;
   private final TransactionalOperator transactionalOperator;
+  private final QueryMediator queryMediator;
+  private final CommandMediator commandMediator;
 
   @Value("${mail.batch-size}")
   private int batchSize;
@@ -45,22 +47,15 @@ public class MailNotificationWorker {
 
   private void findAndSend() {
     threadPoolExecutor.submit(() -> {
-      transactionalOperator.transactional(mailNotificationRepository.findForSend(batchSize)
+      transactionalOperator.transactional(queryMediator.execute(new FindOneForSendQuery(batchSize))
                                               .flatMap(this::submitForSend)).subscribe();
     });
   }
 
   private Mono<MailNotificationEntity> submitForSend(MailNotificationEntity mailNotification) {
-    return Mono.fromRunnable(() -> sendMail(mailNotification))
+    return Mono.fromRunnable(() -> commandMediator.execute(new SendMailCommand(mailNotification)))
         .subscribeOn(Schedulers.boundedElastic())
         .thenReturn(mailNotification);
-  }
-
-  private void sendMail(MailNotificationEntity mailNotification) {
-    mailNotificationService.send(mailNotification)
-        .map(mailNotification::setProcessed)
-        .flatMap(mailNotificationRepository::save)
-        .subscribe();
   }
 
 }

@@ -1,4 +1,4 @@
-package ru.danilarassokhin.notification.repository;
+package ru.danilarassokhin.notification.repository.query;
 
 import java.util.UUID;
 
@@ -9,7 +9,7 @@ import reactor.core.publisher.Flux;
 import ru.danilarassokhin.notification.entity.MailNotificationEntity;
 
 @Repository
-public interface MailNotificationRepository extends ReactiveCrudRepository<MailNotificationEntity, UUID> {
+public interface MailNotificationQueryRepository extends ReactiveCrudRepository<MailNotificationEntity, UUID> {
 
   @Query("select * from notification.mail where is_processed = false for update skip locked limit $1")
   Flux<MailNotificationEntity> findForSend(int limit);
