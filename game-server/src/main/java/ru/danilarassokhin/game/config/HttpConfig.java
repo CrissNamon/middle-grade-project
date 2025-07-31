@@ -1,5 +1,6 @@
 package ru.danilarassokhin.game.config;
 
+import ru.danilarassokhin.game.controller.AuthenticationController;
 import ru.danilarassokhin.game.controller.DungeonController;
 import ru.danilarassokhin.game.controller.GlobalExceptionHandler;
 import ru.danilarassokhin.game.controller.LotteryController;
@@ -21,11 +22,12 @@ public class HttpConfig {
       PlayerController playerController,
       DungeonController dungeonController,
       MarketController marketController,
-      LotteryController lotteryController
+      LotteryController lotteryController,
+      AuthenticationController authenticationController
   ) {
     return new ReflectiveDispatcherController(httpHandlerProcessor, globalExceptionHandler,
                                               playerController, dungeonController, marketController,
-                                              lotteryController);
+                                              lotteryController, authenticationController);
   }
 
 }

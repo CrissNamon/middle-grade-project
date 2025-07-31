@@ -1,6 +1,7 @@
 package ru.danilarassokhin.game.controller;
 
 import jakarta.validation.ConstraintViolationException;
+import ru.danilarassokhin.game.exception.AuthException;
 import ru.danilarassokhin.game.model.response.HttpErrorResponse;
 import ru.danilarassokhin.server.model.ResponseEntity;
 import ru.danilarassokhin.injection.exception.ApplicationException;
@@ -17,6 +18,8 @@ public class GlobalExceptionHandler {
                        c -> ResponseEntity.badRequest(new HttpErrorResponse(c.getMessage())));
     handler.addHandler(ApplicationException.class,
                        c -> ResponseEntity.badRequest(new HttpErrorResponse(c.getMessage())));
+    handler.addHandler(AuthException.class,
+                       c -> ResponseEntity.internalError());
   }
 
 }

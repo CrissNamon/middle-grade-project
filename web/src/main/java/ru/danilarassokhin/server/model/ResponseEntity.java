@@ -31,4 +31,8 @@ public record ResponseEntity(HttpResponseStatus status, Object body) {
     return new ResponseEntity(HttpResponseStatus.BAD_REQUEST, body);
   }
 
+  public static ResponseEntity forbidden() {
+    return new ResponseEntity(HttpResponseStatus.UNAUTHORIZED, null);
+  }
+
 }
