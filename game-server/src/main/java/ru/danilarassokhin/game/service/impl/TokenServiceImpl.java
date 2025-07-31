@@ -7,7 +7,6 @@ import java.text.ParseException;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.source.RemoteJWKSet;
 import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.oauth2.sdk.AuthorizationCode;
@@ -70,8 +69,6 @@ public class TokenServiceImpl implements TokenService {
   @Override
   public boolean isValid(String token) {
     try {
-      //System.setProperty(RemoteJWKSet.class.getName() + ".defaultHttpReadTimeout", "10000");
-      //System.setProperty(RemoteJWKSet.class.getName() + ".defaultHttpConnectTimeout", "10000");
       validator.validate(JWTParser.parse(token), null);
       return true;
     } catch (ParseException | BadJOSEException | JOSEException e) {
