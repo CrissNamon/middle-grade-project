@@ -50,6 +50,8 @@ dependencies {
     //Kafka
     implementation("org.springframework.kafka:spring-kafka:4.0.0-M2")
     implementation(project(":messaging"))
+    //Security
+    implementation("com.nimbusds:oauth2-oidc-sdk:11.26")
     //Testing
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

@@ -3,6 +3,7 @@ package ru.danilarassokhin.server.impl;
 import static ru.danilarassokhin.server.model.HttpMediaType.TEXT_PLAIN;
 
 import java.lang.reflect.Modifier;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,6 +12,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import ru.danilarassokhin.server.exception.HttpServerException;
 import ru.danilarassokhin.server.DispatcherController;
@@ -68,7 +70,8 @@ public class ReflectiveDispatcherController implements DispatcherController {
     var optionalRequestHandler = findByKey(httpRequestToKey(httpRequest));
     return optionalRequestHandler.map(httpRequestHandlerData -> {
           var pathParameters = httpRequestHandlerData.getLeft().extractParametersNamed(httpRequest.uri());
-          return httpRequestHandlerData.getRight().handle(new RequestEntity(httpRequest, pathParameters));
+          var queryParameters = new QueryStringDecoder(httpRequest.uri()).parameters();
+          return httpRequestHandlerData.getRight().handle(new RequestEntity(httpRequest, pathParameters, queryParameters));
         })
         .orElseGet(() -> createMethodNotAllowedResponse(httpRequest));
   }
@@ -76,7 +79,8 @@ public class ReflectiveDispatcherController implements DispatcherController {
   private HttpRequestKey httpRequestToKey(HttpRequest httpRequest) {
     var contentType = HttpUtils.getHeaderValue(httpRequest, HttpHeaderNames.CONTENT_TYPE)
         .orElse(TEXT_PLAIN);
-    return new HttpRequestKey(httpRequest.method(), contentType, httpRequest.uri());
+    var uri = URI.create(httpRequest.uri());
+    return new HttpRequestKey(httpRequest.method(), contentType, uri.getPath());
   }
 
   private HttpResponseEntity createMethodNotAllowedResponse(FullHttpRequest httpRequest) {
