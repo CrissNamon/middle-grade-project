@@ -9,6 +9,7 @@ import ru.danilarassokhin.game.config.CamundaConfig;
 import ru.danilarassokhin.game.config.ComponentsConfig;
 import ru.danilarassokhin.game.config.DataSourceConfig;
 import ru.danilarassokhin.game.config.HttpConfig;
+import ru.danilarassokhin.game.config.KafkaConfig;
 import ru.danilarassokhin.game.security.LoggerHttpFilter;
 import ru.danilarassokhin.injection.BeanProxyCreator;
 import ru.danilarassokhin.injection.ReflectionsPackageScanner;
@@ -35,7 +36,7 @@ public class GameApplication {
     var configurations = List.of(ApplicationConfig.class, ResilienceConfig.class,
                                  SqlConfig.class, CacheConfig.class, ComponentsConfig.class,
                                  DataSourceConfig.class, CamundaConfig.class, WebConfig.class,
-                                 HttpConfig.class);
+                                 HttpConfig.class, KafkaConfig.class);
     configurations.forEach(c -> diContainer.loadConfiguration(c, packageScanner));
 
     GameServer.start(diContainer, Set.of(new LoggerHttpFilter()));

@@ -28,4 +28,6 @@ public interface PropertiesFactory {
    * @return {@link Properties}
    */
   Properties getAll();
+
+  Properties getAllForPrefix(String prefix);
 }

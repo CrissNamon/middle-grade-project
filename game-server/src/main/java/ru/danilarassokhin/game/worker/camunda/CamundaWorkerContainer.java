@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.worker;
+package ru.danilarassokhin.game.worker.camunda;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +10,6 @@ import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.api.worker.JobHandler;
 import io.camunda.zeebe.client.api.worker.JobWorker;
 import lombok.extern.slf4j.Slf4j;
-import ru.danilarassokhin.game.config.ApplicationConfig;
 import ru.danilarassokhin.server.config.WebConfig;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;

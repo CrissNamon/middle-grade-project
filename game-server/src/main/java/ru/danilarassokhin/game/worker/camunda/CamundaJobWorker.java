@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.worker;
+package ru.danilarassokhin.game.worker.camunda;
 
 import io.camunda.zeebe.client.api.worker.JobHandler;
 

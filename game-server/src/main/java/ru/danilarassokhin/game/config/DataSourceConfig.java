@@ -23,6 +23,8 @@ public class DataSourceConfig {
   private static final String HIKARI_DATASOURCE_MAXIMUM_POOL_SIZE_PROPERTY = "datasource.pool.maximum-size";
   private static final String HIKARI_DATASOURCE_LEAK_DETECTION_THRESHOLD_PROPERTY = "datasource.leakDetectionThreshold";
   private static final String FLYWAY_LOCATIONS_PROPERTY = "flyway.locations";
+  private static final String FLYWAY_DEFAULT_SCHEMA_PROPERTY = "flyway.defaultSchema";
+  private static final String FLYWAY_SCHEMAS_PROPERTY = "flyway.schemas";
 
   @GameBean
   public DataSource hikariDataSource(PropertiesFactory propertiesFactory) {
@@ -47,6 +49,8 @@ public class DataSourceConfig {
     var flyway = Flyway.configure()
         .dataSource(dataSource)
         .locations(propertiesFactory.getAsString(FLYWAY_LOCATIONS_PROPERTY).orElseThrow())
+        .defaultSchema(propertiesFactory.getAsString(FLYWAY_DEFAULT_SCHEMA_PROPERTY).orElseThrow())
+        .schemas(propertiesFactory.getAsString(FLYWAY_SCHEMAS_PROPERTY).orElseThrow())
         .load();
     flyway.migrate();
     return flyway;

@@ -1,9 +1,11 @@
 package ru.danilarassokhin.game.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import ru.danilarassokhin.game.entity.MailEntity;
 import ru.danilarassokhin.game.mapper.PlayerMapper;
 import ru.danilarassokhin.game.model.dto.CreatePlayerDto;
 import ru.danilarassokhin.game.model.dto.PlayerDto;
+import ru.danilarassokhin.game.repository.MailRepository;
 import ru.danilarassokhin.game.repository.PlayerRepository;
 import ru.danilarassokhin.game.service.CamundaService;
 import ru.danilarassokhin.game.service.PlayerService;
@@ -20,6 +22,7 @@ public class PlayerServiceImpl implements PlayerService {
   private final PlayerRepository playerRepository;
   private final PlayerMapper playerMapper;
   private final CamundaService camundaService;
+  private final MailRepository mailRepository;
 
   @Transactional
   @Override
@@ -29,6 +32,7 @@ public class PlayerServiceImpl implements PlayerService {
       ThrowableOptional.sneaky(() -> camundaService.createProcess(newPlayerId),
                                e -> new ApplicationException("Exception occurred during player creation", e));
       var createdPlayer = playerRepository.findById(newPlayerId);
+      mailRepository.save(new MailEntity(createPlayerDto.name(), "Successful registration"));
       return createdPlayer
           .map(playerMapper::playerEntityToDto)
           .orElseThrow(() -> new ApplicationException("Player creation failed"));

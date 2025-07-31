@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import ru.danilarassokhin.game.entity.camunda.CamundaAction;
 import ru.danilarassokhin.game.entity.camunda.CamundaSignal;
 import ru.danilarassokhin.game.entity.camunda.CamundaVariables;
-import ru.danilarassokhin.game.worker.jobs.AttackCamundaWorker;
+import ru.danilarassokhin.game.worker.camunda.jobs.AttackCamundaWorker;
 
 public class GameSchemaTest extends BpmnSchemaTestBase {
 

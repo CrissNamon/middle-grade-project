@@ -1,4 +1,4 @@
-package ru.danilarassokhin.game.worker.jobs;
+package ru.danilarassokhin.game.worker.camunda.jobs;
 
 import io.camunda.zeebe.client.api.response.ActivatedJob;
 import io.camunda.zeebe.client.api.worker.JobClient;
@@ -8,7 +8,7 @@ import ru.danilarassokhin.game.entity.camunda.CamundaVariables;
 import ru.danilarassokhin.game.model.dto.CreateDamageLogDto;
 import ru.danilarassokhin.game.service.DungeonService;
 import ru.danilarassokhin.game.service.PlayerService;
-import ru.danilarassokhin.game.worker.CamundaJobWorker;
+import ru.danilarassokhin.game.worker.camunda.CamundaJobWorker;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
