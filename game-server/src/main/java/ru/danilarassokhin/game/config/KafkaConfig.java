@@ -29,10 +29,8 @@ public class KafkaConfig {
       MailMapper mapper,
       PropertiesFactory propertiesFactory
   ) {
-    KafkaMailSender sender = BasicComponentManager.getComponentCreator()
+    return BasicComponentManager.getComponentCreator()
         .create(KafkaMailSenderImpl.class, mailRepository, producer, mapper, propertiesFactory);
-    sender.schedule();
-    return sender;
   }
 
 }

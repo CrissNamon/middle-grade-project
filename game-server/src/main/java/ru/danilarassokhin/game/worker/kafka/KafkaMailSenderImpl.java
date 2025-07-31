@@ -69,6 +69,7 @@ public class KafkaMailSenderImpl implements KafkaMailSender {
   public void setTopic() {
     this.topic = propertiesFactory.getAsString("app.topic.mail")
         .orElseThrow(() -> new ApplicationException("Mail topic is not defined"));
+    schedule();
   }
 
 }
