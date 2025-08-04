@@ -15,11 +15,11 @@ public class GameServer {
 
   private static final int DEFAULT_PORT = 8080;
 
-  public static void start(DIContainer diContainer, Set<HttpRequestFilter> filterChain) {
+  public static void start(DIContainer diContainer, Set<HttpRequestFilter> filterChain, Set<HttpResponseInterceptor> responseInterceptors) {
     var propertiesFactory = diContainer.getBean(PropertiesFactory.class);
     var dispatcherController = diContainer.getBean(DispatcherController.class);
     var loggingHandler = new LoggingHandler(LogLevel.DEBUG);
-    var serverInitializer = new HttpServerInitializer(dispatcherController, filterChain);
+    var serverInitializer = new HttpServerInitializer(dispatcherController, filterChain, responseInterceptors);
     var port = propertiesFactory.getAsInt(WebConfig.WEB_SERVER_PORT_PROPERTY_NAME).orElse(DEFAULT_PORT);
     var server = new NettyServer(port, loggingHandler, serverInitializer);
     server.start();

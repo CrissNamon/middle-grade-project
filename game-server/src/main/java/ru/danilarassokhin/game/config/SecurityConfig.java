@@ -26,7 +26,7 @@ public class SecurityConfig {
 
   @GameBean
   public HttpSecurity httpSecurity() {
-    return new HttpSecurity(Set.of("/api/**"));
+    return new HttpSecurity(Set.of("/api/**"), "/login", "/code");
   }
 
 }

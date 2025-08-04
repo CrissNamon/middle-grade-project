@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.game.service.AuthenticationService;
 import ru.danilarassokhin.game.service.TokenService;
 import ru.danilarassokhin.server.annotation.GetRequest;
-import ru.danilarassokhin.server.annotation.PostRequest;
 import ru.danilarassokhin.server.model.RequestEntity;
 import ru.danilarassokhin.server.model.ResponseEntity;
 import tech.hiddenproject.progressive.annotation.Autofill;
@@ -24,8 +23,6 @@ public class AuthenticationController {
 
   @GetRequest(value = "/code", consumes = "text/plain")
   public ResponseEntity code(RequestEntity request) {
-    String  code = request.getQueryParameter("code");
-    authenticationService.validate(request.getQueryParameter("state"), code);
-    return ResponseEntity.ok(tokenService.exchangeCode(code));
+    return ResponseEntity.ok(tokenService.exchangeCode(request.getQueryParameter("code")));
   }
 }

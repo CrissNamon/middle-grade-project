@@ -11,6 +11,7 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.RequiredArgsConstructor;
 import ru.danilarassokhin.server.DispatcherController;
 import ru.danilarassokhin.server.HttpRequestFilter;
+import ru.danilarassokhin.server.HttpResponseInterceptor;
 
 /**
  * Initializer for Netty's pipeline.
@@ -26,6 +27,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
   private final EventExecutorGroup businessLogicExecutorGroup =
       new DefaultEventExecutorGroup(BUSINESS_LOGIC_EXECUTOR_THREADS);
   private final Set<HttpRequestFilter> requestFilterSet;
+  private final Set<HttpResponseInterceptor> responseInterceptors;
 
   @Override
   protected void initChannel(SocketChannel channel) {
@@ -36,7 +38,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     channel.pipeline().addLast(
         businessLogicExecutorGroup,
         new HttpFilterHandler(requestFilterSet),
-        new HttpServerHandler(dispatcherController)
+        new HttpServerHandler(dispatcherController, responseInterceptors)
     );
   }
 }

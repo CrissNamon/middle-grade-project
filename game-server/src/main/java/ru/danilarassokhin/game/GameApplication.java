@@ -13,6 +13,7 @@ import ru.danilarassokhin.game.config.KafkaConfig;
 import ru.danilarassokhin.game.config.SecurityConfig;
 import ru.danilarassokhin.game.security.HttpSecurity;
 import ru.danilarassokhin.game.security.JwtHttpFilter;
+import ru.danilarassokhin.game.security.JwtStateHttpFilter;
 import ru.danilarassokhin.game.service.TokenService;
 import ru.danilarassokhin.injection.BeanProxyCreator;
 import ru.danilarassokhin.injection.ReflectionsPackageScanner;
@@ -42,10 +43,10 @@ public class GameApplication {
                                  HttpConfig.class, SecurityConfig.class, KafkaConfig.class);
     configurations.forEach(c -> diContainer.loadConfiguration(c, packageScanner));
 
-    GameServer.start(diContainer, Set.of(
-        new JwtHttpFilter(diContainer.getBean(HttpSecurity.class),
-                          diContainer.getBean("tokenservice", TokenService.class))
-    ));
+    var jwtHttpFilter = new JwtHttpFilter(diContainer.getBean(HttpSecurity.class),
+                                          diContainer.getBean("tokenservice", TokenService.class));
+    var authenticationResponseInterceptor = new JwtStateHttpFilter(diContainer.getBean(HttpSecurity.class));
+    GameServer.start(diContainer, Set.of(jwtHttpFilter), Set.of(authenticationResponseInterceptor));
   }
 
 }
