@@ -36,9 +36,18 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     listener:
       ack-mode: manual-immediate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/master
 
 mail:
   timer: 300000
   batch-size: 10
   kafka:
     topic: mail.notification.000
+
+soap:
+  endpoints:
+    get-all-mails: true

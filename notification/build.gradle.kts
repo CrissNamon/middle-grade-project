@@ -4,6 +4,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("org.flywaydb.flyway") version "8.0.3"
     id("io.freefair.lombok") version "8.14"
+    id("com.intershop.gradle.jaxb") version "6.0.0"
 }
 
 group = "ru.danilarassokhin"
@@ -30,6 +31,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+
+    // SOAP
+    implementation("org.springframework.boot:spring-boot-starter-web-services")
+    implementation("wsdl4j:wsdl4j")
+    implementation ("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
+    runtimeOnly ("org.glassfish.jaxb:jaxb-runtime:4.0.0")
+
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework:spring-jdbc")
@@ -62,4 +72,13 @@ flyway {
     locations = arrayOf("filesystem:$projectDir/src/main/resources/db/migration")
     schemas = arrayOf("notification")
     defaultSchema = "notification"
+}
+
+jaxb {
+    javaGen {
+        register("mySchemaGen") {
+            schema = file("src/main/resources/xsd/mail-service.xsd")
+            packageName = "ru.danilarassokhin.jaxb"
+        }
+    }
 }
