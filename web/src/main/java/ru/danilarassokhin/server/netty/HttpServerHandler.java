@@ -6,6 +6,7 @@ import static ru.danilarassokhin.server.util.HttpUtils.createInternalServerError
 import static ru.danilarassokhin.server.util.HttpUtils.shouldCloseConnection;
 
 import java.util.Optional;
+import java.util.Set;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -20,6 +21,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.danilarassokhin.server.HttpResponseInterceptor;
 import ru.danilarassokhin.server.exception.HttpServerException;
 import ru.danilarassokhin.server.DispatcherController;
 import ru.danilarassokhin.server.model.HttpResponseEntity;
@@ -35,11 +37,13 @@ import tech.hiddenproject.aide.optional.IfTrueConditional;
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   private final DispatcherController dispatcherController;
+  private final Set<HttpResponseInterceptor> responseInterceptorChain;
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) {
     try {
       var response = responseEntityToHttpResponse(dispatcherController.handleRequest(msg), msg);
+      responseInterceptorChain.forEach(httpResponseInterceptor -> httpResponseInterceptor.intercept(msg, response));
       var channelFeature = ctx.writeAndFlush(response);
       if (shouldCloseConnection(response)) {
         channelFeature.addListener(ChannelFutureListener.CLOSE);
