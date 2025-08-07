@@ -2,9 +2,8 @@ package ru.danilarassokhin.game.security;
 
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -21,7 +20,7 @@ public class JwtStateHttpFilter implements HttpResponseInterceptor {
 
   private static final String STATE_PARAMETER = "state";
 
-  private final Set<String> authorizationStates = Collections.synchronizedSet(new HashSet<>());
+  private final Set<String> authorizationStates = new ConcurrentSkipListSet<>();
 
   private final HttpSecurity httpSecurity;
 
