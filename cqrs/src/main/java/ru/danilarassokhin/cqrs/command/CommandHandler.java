@@ -7,6 +7,6 @@ import ru.danilarassokhin.cqrs.ActionHandler;
  * @param <I> Тип входного параметра
  * @param <C> Тип комманды
  */
-public interface CommandHandler<I, C extends Command<I>> extends ActionHandler<I, Void, C> {
+public interface CommandHandler<I, O, C extends Command<I, O>> extends ActionHandler<I, O, C> {
 
 }

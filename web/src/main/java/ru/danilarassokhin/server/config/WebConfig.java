@@ -1,6 +1,8 @@
 package ru.danilarassokhin.server.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.validation.Validator;
 import ru.danilarassokhin.server.HttpExceptionHandler;
 import ru.danilarassokhin.server.reflection.HttpBodyMapper;
@@ -18,7 +20,9 @@ public class WebConfig {
 
   @GameBean
   public ObjectMapper objectMapper() {
-    return new ObjectMapper();
+    return new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
 
   @GameBean(order = 1)

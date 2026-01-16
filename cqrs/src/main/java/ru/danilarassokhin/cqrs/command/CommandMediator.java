@@ -10,6 +10,6 @@ public interface CommandMediator {
    * @param command {@link Command}
    * @param <I> Тип входного параметра
    */
-  <I> void execute(Command<I> command);
+  <I, O> O execute(Command<I, O> command);
 
 }

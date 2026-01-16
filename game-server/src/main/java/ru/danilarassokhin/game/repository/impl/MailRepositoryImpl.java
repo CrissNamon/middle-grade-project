@@ -16,7 +16,7 @@ import tech.hiddenproject.progressive.annotation.GameBean;
 public class MailRepositoryImpl implements MailRepository {
 
   private static final String FIND_ONE_FOR_SEND_QUERY =
-      String.format("SELECT * FROM %s LIMIT 1 FOR UPDATE SKIP LOCKED", MailEntity.TABLE_NAME);
+      String.format("SELECT * FROM %s WHERE is_processed = false LIMIT 1 FOR UPDATE SKIP LOCKED", MailEntity.TABLE_NAME);
   private static final String SET_PROCESSED_QUERY =
       String.format("UPDATE %s SET is_processed = true WHERE id = ?", MailEntity.TABLE_NAME);
 
