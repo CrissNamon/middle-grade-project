@@ -48,7 +48,6 @@ public class ReactiveAuthorizationAspect {
   private String getJwtTokenFromMethod(ProceedingJoinPoint joinPoint) {
     var signature = (MethodSignature) joinPoint.getSignature();
     var reactiveAuthorized = signature.getMethod().getAnnotation(ReactiveAuthorized.class);
-
     var context = new MethodBasedEvaluationContext(joinPoint.getThis(), signature.getMethod(),
                                                    joinPoint.getArgs(), parameterNameDiscoverer);
     return spelExpressionParser.parseExpression(reactiveAuthorized.value())
