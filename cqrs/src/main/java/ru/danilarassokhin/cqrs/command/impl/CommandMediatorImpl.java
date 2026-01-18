@@ -17,6 +17,6 @@ public class CommandMediatorImpl implements CommandMediator {
 
   @Override
   public <I, O> O execute(Command<I, O> command) {
-    return (O) delegate.execute(command);
+    return delegate.execute(command);
   }
 }

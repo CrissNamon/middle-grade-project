@@ -15,6 +15,7 @@ import ru.danilarassokhin.game.repository.MailRepository;
 import ru.danilarassokhin.game.service.ClientAuthenticationService;
 import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.injection.exception.ApplicationException;
+import ru.danilarassokhin.messaging.dto.KafkaHeader;
 import ru.danilarassokhin.sql.service.TransactionManager;
 import ru.danilarassokhin.util.PropertiesFactory;
 import tech.hiddenproject.progressive.annotation.Autofill;
@@ -23,7 +24,7 @@ import tech.hiddenproject.progressive.annotation.Autofill;
 @Slf4j
 public class KafkaMailSenderImpl implements KafkaMailSender {
 
-  private final static Long SENDING_DELAY_MINUTES = 10L;
+  private final static Long SENDING_DELAY_SECONDS = 10L;
 
   private final ScheduledExecutorService threadPoolExecutor =
       Executors.newSingleThreadScheduledExecutor();
@@ -47,7 +48,7 @@ public class KafkaMailSenderImpl implements KafkaMailSender {
               trySendMail(mailEntity);
             });
       });
-    }, SENDING_DELAY_MINUTES, SENDING_DELAY_MINUTES, TimeUnit.SECONDS);
+    }, SENDING_DELAY_SECONDS, SENDING_DELAY_SECONDS, TimeUnit.SECONDS);
   }
 
   private void trySendMail(MailEntity mailEntity) {
@@ -64,7 +65,7 @@ public class KafkaMailSenderImpl implements KafkaMailSender {
   private void sendMail(CreateMailDto createMailDto) {
     log.info("Sending to topic {}", topic);
     var record = new ProducerRecord<String, CreateMailDto>(topic, createMailDto);
-    record.headers().add("Authentication", clientAuthenticationService.getToken().getBytes(StandardCharsets.UTF_8));
+    record.headers().add(KafkaHeader.AUTHENTICATION, clientAuthenticationService.getToken().getBytes(StandardCharsets.UTF_8));
     kafkaProducer.send(record);
   }
 
