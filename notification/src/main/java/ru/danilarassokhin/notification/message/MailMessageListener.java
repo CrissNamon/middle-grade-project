@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import ru.danilarassokhin.cqrs.command.CommandMediator;
 import ru.danilarassokhin.messaging.dto.CreateMailDto;
+import ru.danilarassokhin.messaging.dto.KafkaHeader;
 import ru.danilarassokhin.notification.annotation.ReactiveAuthorized;
 import ru.danilarassokhin.notification.command.CreateMailCommand;
 
@@ -33,7 +34,7 @@ public class MailMessageListener {
   @Transactional
   public Mono<Void> consume(
       @Payload CreateMailDto createMailDto,
-      @Header(value = "Authentication") String bearerToken,
+      @Header(value = KafkaHeader.AUTHENTICATION) String bearerToken,
       Acknowledgment acknowledgment
   ) {
     return ReactiveSecurityContextHolder.getContext()
