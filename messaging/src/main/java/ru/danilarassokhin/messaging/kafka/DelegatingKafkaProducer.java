@@ -5,6 +5,7 @@ import java.util.Properties;
 import java.util.concurrent.Future;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
@@ -13,7 +14,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
  * @param <K> Тип ключа
  * @param <V> Тип значения
  */
-public class DelegatingKafkaProducer<K, V> extends KafkaProducer<K, V> {
+public class DelegatingKafkaProducer<K, V> extends KafkaProducer<K, V> implements Producer<K, V> {
 
   private final List<KafkaProducerInterceptor<K, V>> interceptors;
 

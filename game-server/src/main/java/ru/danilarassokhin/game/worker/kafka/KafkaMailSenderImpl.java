@@ -6,13 +6,13 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import ru.danilarassokhin.game.entity.MailEntity;
 import ru.danilarassokhin.game.mapper.MailMapper;
 import ru.danilarassokhin.game.repository.MailRepository;
 import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.injection.exception.ApplicationException;
-import ru.danilarassokhin.messaging.kafka.DelegatingKafkaProducer;
 import ru.danilarassokhin.sql.service.TransactionManager;
 import ru.danilarassokhin.util.PropertiesFactory;
 import tech.hiddenproject.progressive.annotation.Autofill;
@@ -26,7 +26,7 @@ public class KafkaMailSenderImpl implements KafkaMailSender {
   private final ScheduledExecutorService threadPoolExecutor =
       Executors.newSingleThreadScheduledExecutor();
 
-  private final DelegatingKafkaProducer<String, CreateMailDto> kafkaProducer;
+  private final Producer<String, CreateMailDto> kafkaProducer;
   private final MailMapper mapper;
   private final PropertiesFactory propertiesFactory;
   private final TransactionManager transactionManager;
