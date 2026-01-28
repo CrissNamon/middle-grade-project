@@ -1,15 +1,16 @@
 package ru.danilarassokhin.game.config;
 
+import java.util.List;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import ru.danilarassokhin.game.mapper.MailMapper;
+import ru.danilarassokhin.game.kafka.KafkaAuthorizationProducerInterceptor;
 import ru.danilarassokhin.game.service.ClientAuthenticationService;
 import ru.danilarassokhin.game.service.impl.ClientAuthenticationServiceImpl;
 import ru.danilarassokhin.messaging.dto.CreateMailDto;
-import ru.danilarassokhin.game.repository.MailRepository;
 import ru.danilarassokhin.game.worker.kafka.KafkaMailSender;
 import ru.danilarassokhin.game.worker.kafka.KafkaMailSenderImpl;
+import ru.danilarassokhin.messaging.kafka.DelegatingKafkaProducer;
+import ru.danilarassokhin.messaging.kafka.KafkaProducerInterceptor;
 import ru.danilarassokhin.util.PropertiesFactory;
 import tech.hiddenproject.progressive.BasicComponentManager;
 import tech.hiddenproject.progressive.annotation.Configuration;
@@ -20,12 +21,7 @@ public class KafkaConfig {
 
   private static final String KAFKA_PROPERTY_PREFIX = "kafka";
 
-  @GameBean(order = 1)
-  public Producer<String, CreateMailDto> producer(PropertiesFactory propertiesFactory) {
-    return new KafkaProducer<>(propertiesFactory.getAllForPrefix(KAFKA_PROPERTY_PREFIX));
-  }
-
-  @GameBean(order = 3)
+  @GameBean(order = 0)
   public ClientAuthenticationService clientAuthenticationService(
       PropertiesFactory propertiesFactory,
       ObjectMapper objectMapper
@@ -33,16 +29,23 @@ public class KafkaConfig {
     return new ClientAuthenticationServiceImpl(propertiesFactory, objectMapper);
   }
 
-  @GameBean(order = 4)
-  public KafkaMailSender kafkaMailSender(
-      MailRepository mailRepository,
-      KafkaProducer<String, CreateMailDto> producer,
-      MailMapper mapper,
+  @GameBean(order = 1)
+  public KafkaProducerInterceptor<String, CreateMailDto> kafkaProducerInterceptor(ClientAuthenticationService clientAuthenticationService) {
+    return new KafkaAuthorizationProducerInterceptor(clientAuthenticationService);
+  }
+
+  @GameBean(order = 2)
+  public DelegatingKafkaProducer<String, CreateMailDto> producer(
       PropertiesFactory propertiesFactory,
-      ClientAuthenticationService clientAuthenticationService
+      KafkaAuthorizationProducerInterceptor kafkaAuthorizationProducerInterceptor
   ) {
-    return BasicComponentManager.getComponentCreator()
-        .create(KafkaMailSenderImpl.class, mailRepository, producer, mapper, propertiesFactory, clientAuthenticationService);
+    return new DelegatingKafkaProducer<>(propertiesFactory.getAllForPrefix(KAFKA_PROPERTY_PREFIX),
+                                         List.of(kafkaAuthorizationProducerInterceptor));
+  }
+
+  @GameBean(order = 3)
+  public KafkaMailSender kafkaMailSender() {
+    return BasicComponentManager.getComponentCreator().create(KafkaMailSenderImpl.class);
   }
 
 }

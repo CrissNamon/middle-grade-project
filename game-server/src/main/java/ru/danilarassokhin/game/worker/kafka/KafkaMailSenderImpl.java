@@ -1,21 +1,18 @@
 package ru.danilarassokhin.game.worker.kafka;
 
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import ru.danilarassokhin.game.entity.MailEntity;
 import ru.danilarassokhin.game.mapper.MailMapper;
 import ru.danilarassokhin.game.repository.MailRepository;
-import ru.danilarassokhin.game.service.ClientAuthenticationService;
 import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.injection.exception.ApplicationException;
-import ru.danilarassokhin.messaging.dto.KafkaHeader;
+import ru.danilarassokhin.messaging.kafka.DelegatingKafkaProducer;
 import ru.danilarassokhin.sql.service.TransactionManager;
 import ru.danilarassokhin.util.PropertiesFactory;
 import tech.hiddenproject.progressive.annotation.Autofill;
@@ -29,12 +26,11 @@ public class KafkaMailSenderImpl implements KafkaMailSender {
   private final ScheduledExecutorService threadPoolExecutor =
       Executors.newSingleThreadScheduledExecutor();
 
-  private final KafkaProducer<String, CreateMailDto> kafkaProducer;
+  private final DelegatingKafkaProducer<String, CreateMailDto> kafkaProducer;
   private final MailMapper mapper;
   private final PropertiesFactory propertiesFactory;
   private final TransactionManager transactionManager;
   private final MailRepository mailRepository;
-  private final ClientAuthenticationService clientAuthenticationService;
 
   private String topic;
 
@@ -64,9 +60,7 @@ public class KafkaMailSenderImpl implements KafkaMailSender {
 
   private void sendMail(CreateMailDto createMailDto) {
     log.info("Sending to topic {}", topic);
-    var record = new ProducerRecord<String, CreateMailDto>(topic, createMailDto);
-    record.headers().add(KafkaHeader.AUTHENTICATION, clientAuthenticationService.getToken().getBytes(StandardCharsets.UTF_8));
-    kafkaProducer.send(record);
+    kafkaProducer.send(new ProducerRecord<>(topic, createMailDto));
   }
 
   @Autofill
