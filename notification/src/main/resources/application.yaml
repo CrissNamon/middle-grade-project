@@ -17,8 +17,8 @@ spring:
     schemas: notification
     url: jdbc:postgresql://localhost:5432/nlmkend
   kafka:
+    bootstrap-servers: localhost:9095
     consumer:
-      bootstrap-servers: 127.0.0.1:9092
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       auto-offset-reset: earliest
@@ -31,11 +31,11 @@ spring:
             trusted:
               packages: 'ru.danilarassokhin.*'
     producer:
-      bootstrap-servers: 127.0.0.1:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     listener:
-      ack-mode: manual-immediate
+      ack-mode: manual
+      async-acks: true
   security:
     oauth2:
       resourceserver:

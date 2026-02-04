@@ -26,9 +26,9 @@ public class ActionMediator {
    * @param action {@link Action}
    * @return Результат выполнения действия
    */
-  public Object execute(Action action) {
+  public <I, O> O execute(Action<I, O> action) {
     if (handlers.containsKey(action.getClass())) {
-      return handlers.get(action.getClass()).handle(action);
+      return (O) handlers.get(action.getClass()).handle(action);
     }
     throw new HandlerException("Handler not found for: " + action.getClass());
   }

@@ -21,7 +21,7 @@ public class CommandMediatorTest {
     });
   }
 
-  public static class ThrowErrorCommandHandler implements CommandHandler<Integer, ThrowErrorCommand> {
+  public static class ThrowErrorCommandHandler implements CommandHandler<Integer, Void, ThrowErrorCommand> {
 
     @Override
     public Void handle(ThrowErrorCommand query) {
@@ -34,6 +34,6 @@ public class CommandMediatorTest {
     }
   }
 
-  public record ThrowErrorCommand(Integer id) implements Command<Integer> {}
+  public record ThrowErrorCommand(Integer id) implements Command<Integer, Void> {}
 
 }

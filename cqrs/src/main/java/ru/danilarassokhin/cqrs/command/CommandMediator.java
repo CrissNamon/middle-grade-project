@@ -9,7 +9,8 @@ public interface CommandMediator {
    * Ищет обработчик и передаем ему команду.
    * @param command {@link Command}
    * @param <I> Тип входного параметра
+   * @param <O> Тип результата
    */
-  <I> void execute(Command<I> command);
+  <I, O> O execute(Command<I, O> command);
 
 }

@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import ru.danilarassokhin.game.entity.MailEntity;
 import ru.danilarassokhin.game.mapper.MailMapper;
@@ -16,19 +16,17 @@ import ru.danilarassokhin.injection.exception.ApplicationException;
 import ru.danilarassokhin.sql.service.TransactionManager;
 import ru.danilarassokhin.util.PropertiesFactory;
 import tech.hiddenproject.progressive.annotation.Autofill;
-import tech.hiddenproject.progressive.annotation.GameBean;
 
-@GameBean
 @RequiredArgsConstructor(onConstructor_ = @Autofill)
 @Slf4j
 public class KafkaMailSenderImpl implements KafkaMailSender {
 
-  private final static Long SENDING_DELAY_MINUTES = 5L;
+  private final static Long SENDING_DELAY_SECONDS = 10L;
 
   private final ScheduledExecutorService threadPoolExecutor =
       Executors.newSingleThreadScheduledExecutor();
 
-  private final KafkaProducer<String, CreateMailDto> kafkaProducer;
+  private final Producer<String, CreateMailDto> kafkaProducer;
   private final MailMapper mapper;
   private final PropertiesFactory propertiesFactory;
   private final TransactionManager transactionManager;
@@ -46,7 +44,7 @@ public class KafkaMailSenderImpl implements KafkaMailSender {
               trySendMail(mailEntity);
             });
       });
-    }, SENDING_DELAY_MINUTES, SENDING_DELAY_MINUTES, TimeUnit.MINUTES);
+    }, SENDING_DELAY_SECONDS, SENDING_DELAY_SECONDS, TimeUnit.SECONDS);
   }
 
   private void trySendMail(MailEntity mailEntity) {

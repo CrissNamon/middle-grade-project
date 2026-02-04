@@ -10,7 +10,7 @@ import ru.danilarassokhin.notification.service.MailNotificationService;
 
 @Component
 @RequiredArgsConstructor
-public class SendMailCommandHandler implements CommandHandler<MailNotificationEntity, SendMailCommand> {
+public class SendMailCommandHandler implements CommandHandler<MailNotificationEntity, Void, SendMailCommand> {
 
   private final MailNotificationService service;
   private final MailNotificationCommandRepository repository;
