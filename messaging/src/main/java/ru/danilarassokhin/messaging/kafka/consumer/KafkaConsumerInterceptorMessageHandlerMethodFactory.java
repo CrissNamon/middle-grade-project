@@ -1,4 +1,4 @@
-package ru.danilarassokhin.messaging.kafka;
+package ru.danilarassokhin.messaging.kafka.consumer;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -19,9 +19,7 @@ public class KafkaConsumerInterceptorMessageHandlerMethodFactory extends Default
   @Override
   public InvocableHandlerMethod createInvocableHandlerMethod(Object bean, Method method) {
     var handler = super.createInvocableHandlerMethod(bean, method);
-    return interceptors.stream().filter(interceptor -> interceptor.filter(bean, method)).findFirst()
-        .map(decorator -> (InvocableHandlerMethod) new KafkaConsumerInterceptorHandlerMethod(handler, decorator, resolvers))
-        .orElse(handler);
+    return new KafkaConsumerInterceptorHandlerMethod(handler, interceptors, resolvers);
   }
 
   @Override

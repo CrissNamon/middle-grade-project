@@ -2,7 +2,6 @@ package ru.danilarassokhin.notification.message;
 
 import java.lang.reflect.Method;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -13,21 +12,26 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-import ru.danilarassokhin.messaging.kafka.KafkaConsumerInterceptor;
+import ru.danilarassokhin.messaging.kafka.consumer.KafkaConsumerInterceptorFilter;
+import ru.danilarassokhin.messaging.kafka.consumer.ConfigurableKafkaConsumerInterceptor;
 import ru.danilarassokhin.notification.annotation.ReactiveAuthorized;
 
-@RequiredArgsConstructor
 @Component
 @Slf4j
-public class KafkaConsumerJwtInterceptor implements KafkaConsumerInterceptor<Mono<Void>> {
+public class KafkaConsumerJwtInterceptor extends ConfigurableKafkaConsumerInterceptor<Mono<Void>> {
 
   private final SpelExpressionParser spelExpressionParser;
   private final ParameterNameDiscoverer parameterNameDiscoverer;
   private final ReactiveJwtDecoder reactiveJwtDecoder;
 
-  @Override
-  public boolean filter(Object bean, Method method) {
-    return method.isAnnotationPresent(ReactiveAuthorized.class);
+  public KafkaConsumerJwtInterceptor(
+      KafkaConsumerInterceptorFilter filter,
+      SpelExpressionParser spelExpressionParser, ParameterNameDiscoverer parameterNameDiscoverer,
+      ReactiveJwtDecoder reactiveJwtDecoder) {
+    super(filter);
+    this.spelExpressionParser = spelExpressionParser;
+    this.parameterNameDiscoverer = parameterNameDiscoverer;
+    this.reactiveJwtDecoder = reactiveJwtDecoder;
   }
 
   @Override

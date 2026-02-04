@@ -1,4 +1,4 @@
-package ru.danilarassokhin.messaging.kafka;
+package ru.danilarassokhin.messaging.kafka.consumer;
 
 import java.lang.reflect.Method;
 
@@ -8,11 +8,12 @@ public interface KafkaConsumerInterceptor<T> {
 
   /**
    * Определяет необходимость использования интерсептора.
+   * @param message {@link Message}
    * @param bean Бин от которого вызывается метод
    * @param method Вызываемый метод
    * @return true - если нужно использовать интерсептор для метода
    */
-  boolean filter(Object bean, Method method);
+  boolean filter(Message<?> message, Object bean, Method method);
 
   /**
    * Выполняется до резолва аргументов, которые будут переданы в метод.
@@ -47,10 +48,13 @@ public interface KafkaConsumerInterceptor<T> {
 
   /**
    * Выполняется в случае ошибки выполнения метода.
+   * @param message {@link Message}
+   * @param bean Бин от которого вызывается метод
+   * @param method Вызываемый метод
+   * @param args Аргументы вызова метода
    * @param throwable Ошибка
-   * @return Новый результат выполнения
    */
-  default Object onExecutionError(Throwable throwable) {
+  default void onExecutionError(Message<?> message, Object bean, Method method, Throwable throwable, Object... args) {
     throw new RuntimeException(throwable);
   }
 

@@ -1,4 +1,7 @@
-package ru.danilarassokhin.messaging.kafka;
+package ru.danilarassokhin.messaging.kafka.producer;
+
+import java.util.Arrays;
+import java.util.function.Predicate;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -23,5 +26,17 @@ public interface KafkaProducerInterceptor<K, V> {
    */
   default ProducerRecord<K, V> beforeSend(ProducerRecord<K, V> record) {
     return record;
+  }
+
+  static <K, V> Predicate<ProducerRecord<K, V>> filterTopicByRegex(String regex) {
+    return (record) -> record.topic().matches(regex);
+  }
+
+  static <K, V> Predicate<ProducerRecord<K, V>> filterTopicByName(String... names) {
+    return (record) -> Arrays.stream(names).anyMatch(topicName -> topicName.equals(record.topic()));
+  }
+
+  static <K, V> Predicate<ProducerRecord<K, V>> filterByHeaderPresence(String headerName) {
+    return (record) -> record.headers().headers(headerName).iterator().hasNext();
   }
 }

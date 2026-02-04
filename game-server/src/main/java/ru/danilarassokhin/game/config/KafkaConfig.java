@@ -9,8 +9,9 @@ import ru.danilarassokhin.game.service.impl.ClientAuthenticationServiceImpl;
 import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.game.worker.kafka.KafkaMailSender;
 import ru.danilarassokhin.game.worker.kafka.KafkaMailSenderImpl;
-import ru.danilarassokhin.messaging.kafka.DelegatingKafkaProducer;
-import ru.danilarassokhin.messaging.kafka.KafkaProducerInterceptor;
+import ru.danilarassokhin.messaging.dto.KafkaHeader;
+import ru.danilarassokhin.messaging.kafka.producer.DelegatingKafkaProducer;
+import ru.danilarassokhin.messaging.kafka.producer.KafkaProducerInterceptor;
 import ru.danilarassokhin.util.PropertiesFactory;
 import tech.hiddenproject.progressive.BasicComponentManager;
 import tech.hiddenproject.progressive.annotation.Configuration;
@@ -31,7 +32,12 @@ public class KafkaConfig {
 
   @GameBean(order = 1)
   public KafkaProducerInterceptor<String, CreateMailDto> kafkaProducerInterceptor(ClientAuthenticationService clientAuthenticationService) {
-    return new KafkaAuthorizationProducerInterceptor(clientAuthenticationService);
+    return new KafkaAuthorizationProducerInterceptor(
+        KafkaProducerInterceptor.<String, CreateMailDto>filterTopicByRegex(".*").and(
+            KafkaProducerInterceptor.<String, CreateMailDto>filterByHeaderPresence(KafkaHeader.AUTHENTICATION).negate()
+        ),
+        clientAuthenticationService
+    );
   }
 
   @GameBean(order = 2)

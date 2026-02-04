@@ -1,24 +1,24 @@
 package ru.danilarassokhin.game.kafka;
 
 import java.nio.charset.StandardCharsets;
+import java.util.function.Predicate;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import ru.danilarassokhin.game.service.ClientAuthenticationService;
 import ru.danilarassokhin.messaging.dto.CreateMailDto;
 import ru.danilarassokhin.messaging.dto.KafkaHeader;
-import ru.danilarassokhin.messaging.kafka.KafkaProducerInterceptor;
+import ru.danilarassokhin.messaging.kafka.producer.ConfigurableKafkaProducerInterceptor;
 
-@RequiredArgsConstructor
 @Slf4j
-public class KafkaAuthorizationProducerInterceptor implements KafkaProducerInterceptor<String, CreateMailDto> {
-
+public class KafkaAuthorizationProducerInterceptor extends ConfigurableKafkaProducerInterceptor<String, CreateMailDto> {
   private final ClientAuthenticationService clientAuthenticationService;
 
-  @Override
-  public boolean filter(ProducerRecord<String, CreateMailDto> record) {
-    return true;
+  public KafkaAuthorizationProducerInterceptor(
+      Predicate<ProducerRecord<String, CreateMailDto>> filter,
+      ClientAuthenticationService clientAuthenticationService) {
+    super(filter);
+    this.clientAuthenticationService = clientAuthenticationService;
   }
 
   @Override

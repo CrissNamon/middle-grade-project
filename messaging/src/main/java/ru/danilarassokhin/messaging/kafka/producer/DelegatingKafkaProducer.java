@@ -1,4 +1,4 @@
-package ru.danilarassokhin.messaging.kafka;
+package ru.danilarassokhin.messaging.kafka.producer;
 
 import java.util.List;
 import java.util.Properties;
@@ -28,10 +28,10 @@ public class DelegatingKafkaProducer<K, V> extends KafkaProducer<K, V> implement
    */
   @Override
   public Future<RecordMetadata> send(ProducerRecord<K, V> record) {
-    return interceptors.stream().filter(interceptor -> interceptor.filter(record))
-        .findFirst()
-        .map(interceptor -> super.send(interceptor.beforeSend(record)))
-        .orElseGet(() -> super.send(record));
+    var mutatedRecord = interceptors.stream()
+        .filter(interceptor -> interceptor.filter(record))
+        .reduce(record, (value, acc) -> acc.beforeSend(value), (prev, next) -> prev);
+    return super.send(mutatedRecord);
   }
 
 }
