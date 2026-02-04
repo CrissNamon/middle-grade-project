@@ -4,6 +4,9 @@ import java.lang.reflect.Method;
 
 import org.springframework.messaging.Message;
 
+/**
+ * {@link KafkaConsumerInterceptor} с настраиваемым фильтром.
+ */
 public abstract class ConfigurableKafkaConsumerInterceptor<T> implements KafkaConsumerInterceptor<T> {
 
   private final KafkaConsumerInterceptorFilter filter;

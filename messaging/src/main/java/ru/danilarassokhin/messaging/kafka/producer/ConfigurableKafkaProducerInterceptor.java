@@ -4,6 +4,9 @@ import java.util.function.Predicate;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
 
+/**
+ * {@link KafkaProducerInterceptor} с настраиваемым фильтром.
+ */
 public abstract class ConfigurableKafkaProducerInterceptor<K, V> implements KafkaProducerInterceptor<K, V> {
 
   private final Predicate<ProducerRecord<K, V>> filter;
