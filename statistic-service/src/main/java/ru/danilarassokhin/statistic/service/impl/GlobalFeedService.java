@@ -1,0 +1,47 @@
+package ru.danilarassokhin.statistic.service.impl;
+
+import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.kstream.KStream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
+import ru.danilarassokhin.messaging.dto.event.SystemEventDto;
+import ru.danilarassokhin.statistic.dto.FeedDto;
+import ru.danilarassokhin.statistic.service.FeedService;
+
+/**
+ * Работает с глобальной лентой активности.
+ */
+@Service
+public class GlobalFeedService implements FeedService<FeedDto> {
+
+  private final Sinks.Many<FeedDto> sinks = Sinks.many().multicast().onBackpressureBuffer();
+
+  @Autowired
+  public GlobalFeedService(
+      KStream<String, Double> playerDamageStream,
+      KStream<String, SystemEventDto> systemEventsStream
+  ) {
+    var playerDamageFeed = playerDamageStream.map(this::createFeedDto);
+    var systemEventsFeed = systemEventsStream.map(this::createFeedDto);
+    systemEventsFeed.merge(playerDamageFeed).foreach((key, value) -> sinks.tryEmitNext(value));
+  }
+
+  /**
+   * @return Лента активности всех пользователей
+   */
+  @Override
+  public Flux<FeedDto> getAll() {
+    return sinks.asFlux();
+  }
+
+  private KeyValue<String, FeedDto> createFeedDto(String playerName, Double damage) {
+     return new KeyValue<>(playerName, new FeedDto("Игрок " + playerName + " нанес " + damage + " урона"));
+  }
+
+  private KeyValue<String, FeedDto> createFeedDto(String id, SystemEventDto eventDto) {
+    return new KeyValue<>(id, new FeedDto("Системное уведомление"));
+  }
+
+}
