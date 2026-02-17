@@ -1,5 +1,6 @@
 package ru.danilarassokhin.statistic.service.impl;
 
+import jakarta.annotation.PreDestroy;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,11 @@ public class GlobalFeedService implements FeedService<FeedDto> {
   @Override
   public Flux<FeedDto> getAll() {
     return sinks.asFlux();
+  }
+
+  @PreDestroy
+  public void close() {
+    sinks.tryEmitComplete();
   }
 
   private KeyValue<String, FeedDto> createFeedDto(String playerName, Double damage) {
