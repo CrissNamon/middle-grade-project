@@ -19,6 +19,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -97,14 +98,15 @@ public class KafkaStreamsConfig {
       @Qualifier(STORE_NAME_PLAYER_DAMAGE) StoreBuilder<KeyValueStore<String, Double>> playerDamageStoreBuilder,
       StreamsBuilder streamsBuilder,
       Serde<String> keySerde,
-      Serde<EventDto> valueSerde
+      Serde<EventDto> valueSerde,
+      ObjectProvider<PlayerDealDamageEventAccumulator> accumulatorObjectProvider
   ) {
     return streamsBuilder
         .addStateStore(playerDamageStoreBuilder)
         .stream(eventsTopic, Consumed.with(keySerde, valueSerde))
         .filter((key, value) -> value instanceof PlayerDealDamageEventDto)
         .mapValues(value -> (PlayerDealDamageEventDto) value)
-        .process(PlayerDealDamageEventAccumulator::new, STORE_NAME_PLAYER_DAMAGE);
+        .process(() -> accumulatorObjectProvider.getObject(), STORE_NAME_PLAYER_DAMAGE);
   }
 
   /**
