@@ -26,7 +26,7 @@ public class AccumulatingPunctuationProcessor<EVENT, KEY, VALUE> implements Proc
   private final BiFunction<VALUE, VALUE, VALUE> accumulator;
   private final Duration interval;
 
-  private KeyValueStore<KEY, VALUE> damageStore;
+  private KeyValueStore<KEY, VALUE> stateStore;
 
   /**
    * @param storeName Название хранилища Kafka Streams.
@@ -51,13 +51,13 @@ public class AccumulatingPunctuationProcessor<EVENT, KEY, VALUE> implements Proc
 
   @Override
   public void init(ProcessorContext<KEY, VALUE> context) {
-    this.damageStore = context.getStateStore(storeName);
+    this.stateStore = context.getStateStore(storeName);
     context.schedule(interval, PunctuationType.WALL_CLOCK_TIME, timestamp -> {
-      try (KeyValueIterator<KEY, VALUE> iterator = damageStore.all()) {
+      try (KeyValueIterator<KEY, VALUE> iterator = stateStore.all()) {
         while (iterator.hasNext()) {
           KeyValue<KEY, VALUE> entry = iterator.next();
           context.forward(new Record<>(entry.key, entry.value, timestamp));
-          damageStore.delete(entry.key);
+          stateStore.delete(entry.key);
         }
       }
     });
@@ -66,9 +66,9 @@ public class AccumulatingPunctuationProcessor<EVENT, KEY, VALUE> implements Proc
   @Override
   public void process(Record<String, EVENT> record) {
     var mappedKey = keyMapping.apply(record);
-    var currentValue = damageStore.get(mappedKey);
+    var currentValue = stateStore.get(mappedKey);
     var newValue = valueMapping.apply(record);
     var result = accumulator.apply(currentValue, newValue);
-    damageStore.put(mappedKey, result);
+    stateStore.put(mappedKey, result);
   }
 }
