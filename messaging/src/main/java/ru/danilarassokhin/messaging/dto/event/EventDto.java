@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 )
 @JsonSubTypes({
     @JsonSubTypes.Type(value = PlayerDealDamageEventDto.class, name = "PLAYER_DEAL_DAMAGE"),
-    @JsonSubTypes.Type(value = SystemEventDto.class, name = "SYSTEM_EVENT")
+    @JsonSubTypes.Type(value = BossSpawnedSystemEventDto.class, name = "SYSTEM_EVENT_BOSS_SPAWNED")
 })
 public class EventDto {
 

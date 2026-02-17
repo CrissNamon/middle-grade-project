@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-import ru.danilarassokhin.messaging.dto.event.SystemEventDto;
+import ru.danilarassokhin.messaging.dto.event.BossSpawnedSystemEventDto;
 import ru.danilarassokhin.statistic.dto.FeedDto;
 import ru.danilarassokhin.statistic.service.FeedService;
 
@@ -21,10 +21,10 @@ public class GlobalFeedService implements FeedService<FeedDto> {
   @Autowired
   public GlobalFeedService(
       KStream<String, Double> playerDamageStream,
-      KStream<String, SystemEventDto> systemEventsStream
+      KStream<String, BossSpawnedSystemEventDto> bossSpawnedEventStream
   ) {
     var playerDamageFeed = playerDamageStream.map(this::createFeedDto);
-    var systemEventsFeed = systemEventsStream.map(this::createFeedDto);
+    var systemEventsFeed = bossSpawnedEventStream.map(this::createFeedDto);
     systemEventsFeed.merge(playerDamageFeed).foreach((key, value) -> sinks.tryEmitNext(value));
   }
 
@@ -40,8 +40,8 @@ public class GlobalFeedService implements FeedService<FeedDto> {
      return new KeyValue<>(playerName, new FeedDto("Игрок " + playerName + " нанес " + damage + " урона"));
   }
 
-  private KeyValue<String, FeedDto> createFeedDto(String id, SystemEventDto eventDto) {
-    return new KeyValue<>(id, new FeedDto("Системное уведомление"));
+  private KeyValue<String, FeedDto> createFeedDto(String id, BossSpawnedSystemEventDto eventDto) {
+    return new KeyValue<>(id, new FeedDto("В игровом мире появился босс " + eventDto.getBossId()));
   }
 
 }

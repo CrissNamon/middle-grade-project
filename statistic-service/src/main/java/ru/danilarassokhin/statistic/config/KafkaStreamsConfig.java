@@ -29,10 +29,11 @@ import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import org.springframework.kafka.support.serializer.JsonSerde;
-import ru.danilarassokhin.messaging.dto.event.PlayerEventDto;
+import ru.danilarassokhin.messaging.dto.event.EventDto;
 import ru.danilarassokhin.messaging.dto.event.PlayerDealDamageEventDto;
-import ru.danilarassokhin.messaging.dto.event.SystemEventDto;
-import ru.danilarassokhin.statistic.kafka.PlayerDealDamageEventAccumulator;
+import ru.danilarassokhin.messaging.dto.event.BossSpawnedSystemEventDto;
+import ru.danilarassokhin.statistic.kafka.AccumulatingPunctuationProcessor;
+import ru.danilarassokhin.statistic.util.NullableAccumulator;
 
 @Configuration
 @EnableKafka
@@ -51,7 +52,7 @@ public class KafkaStreamsConfig {
   @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
   public KafkaStreamsConfiguration kStreamsConfig(
       Serde<String> stringSerde,
-      Serde<PlayerEventDto> gameEventDtoSerde,
+      Serde<EventDto> gameEventDtoSerde,
       @Value("${spring.application.name}") String applicationName
   ) {
     Map<String, Object> props = new HashMap<>();
@@ -79,13 +80,8 @@ public class KafkaStreamsConfig {
 
   @Bean
   @Primary
-  public Serde<PlayerEventDto> gameEventDtoSerde(ObjectMapper objectMapper) {
-    return new JsonSerde<>(PlayerEventDto.class, objectMapper);
-  }
-
-  @Bean
-  public Serde<PlayerDealDamageEventDto> playerDealDamageEventDtoSerde(ObjectMapper objectMapper) {
-    return new JsonSerde<>(PlayerDealDamageEventDto.class, objectMapper);
+  public Serde<EventDto> eventDtoSerde(ObjectMapper objectMapper) {
+    return new JsonSerde<>(EventDto.class, objectMapper);
   }
 
   @Bean
@@ -94,26 +90,42 @@ public class KafkaStreamsConfig {
     return Serdes.String();
   }
 
+  /**
+   * Обработчик для событий типа {@link PlayerDealDamageEventDto}.
+   */
   @Bean
   public KStream<String, Double> playerDamageStream(
       @Qualifier(STORE_NAME_PLAYER_DAMAGE) StoreBuilder<KeyValueStore<String, Double>> playerDamageStoreBuilder,
       StreamsBuilder streamsBuilder,
       Serde<String> keySerde,
-      Serde<PlayerDealDamageEventDto> valueSerde
+      Serde<EventDto> valueSerde
   ) {
     return streamsBuilder
         .addStateStore(playerDamageStoreBuilder)
         .stream(eventsTopic, Consumed.with(keySerde, valueSerde))
-        .process(PlayerDealDamageEventAccumulator::new, STORE_NAME_PLAYER_DAMAGE);
+        .filter((key, value) -> value instanceof PlayerDealDamageEventDto)
+        .mapValues(value -> (PlayerDealDamageEventDto) value)
+        .process(() -> new AccumulatingPunctuationProcessor<>(
+            STORE_NAME_PLAYER_DAMAGE,
+            record -> record.value().getPlayerId().toString(),
+            record -> record.value().getDamage(),
+            NullableAccumulator::sum,
+            ACCUMULATOR_PUNCTUATION_DEFAULT_DURATION
+        ), STORE_NAME_PLAYER_DAMAGE);
   }
 
+  /**
+   * Обработчик для событий типа {@link BossSpawnedSystemEventDto}.
+   */
   @Bean
-  public KStream<String, SystemEventDto> systemEventsStream(
+  public KStream<String, BossSpawnedSystemEventDto> bossSpawnedEventStream(
       StreamsBuilder streamsBuilder,
       Serde<String> keySerde,
-      Serde<SystemEventDto> valueSerde
+      Serde<EventDto> valueSerde
   ) {
-    return streamsBuilder.stream(eventsTopic, Consumed.with(keySerde, valueSerde));
+    return streamsBuilder.stream(eventsTopic, Consumed.with(keySerde, valueSerde))
+        .filter((key, value) -> value instanceof BossSpawnedSystemEventDto)
+        .mapValues(value -> (BossSpawnedSystemEventDto) value);
   }
 
 }
