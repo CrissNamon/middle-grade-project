@@ -6,6 +6,9 @@ import static ru.danilarassokhin.statistic.config.KafkaStreamsConfig.STORE_NAME_
 import ru.danilarassokhin.messaging.dto.event.PlayerDealDamageEventDto;
 import ru.danilarassokhin.statistic.util.NullableAccumulator;
 
+/**
+ * {@link AccumulatingPunctuationProcessor} который складывает весь урон для каждого игрока.
+ */
 public class PlayerDealDamageEventAccumulator extends AccumulatingPunctuationProcessor<PlayerDealDamageEventDto, String, Double> {
 
   public PlayerDealDamageEventAccumulator() {

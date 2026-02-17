@@ -32,8 +32,7 @@ import org.springframework.kafka.support.serializer.JsonSerde;
 import ru.danilarassokhin.messaging.dto.event.EventDto;
 import ru.danilarassokhin.messaging.dto.event.PlayerDealDamageEventDto;
 import ru.danilarassokhin.messaging.dto.event.BossSpawnedSystemEventDto;
-import ru.danilarassokhin.statistic.kafka.AccumulatingPunctuationProcessor;
-import ru.danilarassokhin.statistic.util.NullableAccumulator;
+import ru.danilarassokhin.statistic.kafka.PlayerDealDamageEventAccumulator;
 
 @Configuration
 @EnableKafka
@@ -105,13 +104,7 @@ public class KafkaStreamsConfig {
         .stream(eventsTopic, Consumed.with(keySerde, valueSerde))
         .filter((key, value) -> value instanceof PlayerDealDamageEventDto)
         .mapValues(value -> (PlayerDealDamageEventDto) value)
-        .process(() -> new AccumulatingPunctuationProcessor<>(
-            STORE_NAME_PLAYER_DAMAGE,
-            record -> record.value().getPlayerId().toString(),
-            record -> record.value().getDamage(),
-            NullableAccumulator::sum,
-            ACCUMULATOR_PUNCTUATION_DEFAULT_DURATION
-        ), STORE_NAME_PLAYER_DAMAGE);
+        .process(PlayerDealDamageEventAccumulator::new, STORE_NAME_PLAYER_DAMAGE);
   }
 
   /**
