@@ -11,6 +11,7 @@ import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
+import ru.danilarassokhin.statistic.exception.PunctuationProcessorException;
 
 /**
  * Группирует и аккумулирует сообщения по заданной функции.
@@ -46,7 +47,7 @@ public class AccumulatingPunctuationProcessor<EVENT, KEY, VALUE> implements Proc
     this.keyMapping = keyMapping;
     this.valueMapping = valueMapping;
     this.accumulator = accumulator;
-    this.interval = interval;
+    this.interval = validateInterval(interval);
   }
 
   @Override
@@ -70,5 +71,12 @@ public class AccumulatingPunctuationProcessor<EVENT, KEY, VALUE> implements Proc
     var newValue = valueMapping.apply(record);
     var result = accumulator.apply(currentValue, newValue);
     stateStore.put(mappedKey, result);
+  }
+
+  private Duration validateInterval(Duration interval) {
+    if (interval.toMillis() < 1) {
+      throw new PunctuationProcessorException("Interval must be greater than 1 millisecond");
+    }
+    return interval;
   }
 }

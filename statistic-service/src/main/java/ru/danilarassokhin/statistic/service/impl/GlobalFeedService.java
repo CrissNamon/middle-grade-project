@@ -1,6 +1,7 @@
 package ru.danilarassokhin.statistic.service.impl;
 
 import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import ru.danilarassokhin.statistic.service.FeedService;
  * Работает с глобальной лентой активности.
  */
 @Service
+@Slf4j
 public class GlobalFeedService implements FeedService<FeedDto> {
 
   private final Sinks.Many<FeedDto> sinks = Sinks.many().multicast().onBackpressureBuffer();
@@ -22,12 +24,13 @@ public class GlobalFeedService implements FeedService<FeedDto> {
   @Autowired
   public GlobalFeedService(
       KStream<String, Double> playerDamageStream,
-      KStream<String, BossSpawnedSystemEventDto> bossSpawnedEventStream
+      KStream<String, BossSpawnedSystemEventDto> bossSpawnedStream
   ) {
     var playerDamageFeed = playerDamageStream.map(this::createFeedDto);
-    var systemEventsFeed = bossSpawnedEventStream.map(this::createFeedDto);
-    systemEventsFeed.merge(playerDamageFeed).foreach((key, value) -> sinks.tryEmitNext(value));
+    var systemEventsFeed = bossSpawnedStream.map(this::createFeedDto);
+    systemEventsFeed.merge(playerDamageFeed).foreach(this::tryEmitNext);
   }
+
 
   /**
    * @return Лента активности всех пользователей
@@ -48,6 +51,13 @@ public class GlobalFeedService implements FeedService<FeedDto> {
 
   private KeyValue<String, FeedDto> createFeedDto(String id, BossSpawnedSystemEventDto eventDto) {
     return new KeyValue<>(id, new FeedDto("В игровом мире появился босс " + eventDto.getBossId()));
+  }
+
+  private void tryEmitNext(String key, FeedDto event) {
+    var emitResult = sinks.tryEmitNext(event);
+    if (emitResult.isFailure()) {
+      log.error("Error occurred during FeedDto emitting: {}", event);
+    }
   }
 
 }
