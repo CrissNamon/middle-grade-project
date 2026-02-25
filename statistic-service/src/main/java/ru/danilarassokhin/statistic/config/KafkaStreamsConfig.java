@@ -43,6 +43,8 @@ import ru.danilarassokhin.statistic.kafka.PlayerDealDamageEventAccumulator;
 @EnableKafkaStreams
 public class KafkaStreamsConfig {
 
+  public static final String BRANCH_NAME_PLAYER_DAMAGE = "player-damage";
+  public static final String BRANCH_NAME_BOSS_SPAWNED = "boss-spawned";
   public static final String STORE_NAME_PLAYER_DAMAGE = "player-damage-store";
   public static final Duration ACCUMULATOR_PUNCTUATION_DEFAULT_DURATION = Duration.ofSeconds(10);
 
@@ -51,6 +53,9 @@ public class KafkaStreamsConfig {
 
   @Value(value = "${app.events.topic}")
   private String eventsTopic;
+
+  @Value(value = "${app.events.topic}-")
+  private String branchPrefix;
 
   @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
   public KafkaStreamsConfiguration kStreamsConfig(
@@ -104,21 +109,20 @@ public class KafkaStreamsConfig {
       ObjectProvider<PlayerDealDamageEventAccumulator> accumulatorObjectProvider
   ) {
     streamsBuilder.addStateStore(playerDamageStoreBuilder);
-    var branchPrefix = eventsTopic + "-";
     var branches = streamsBuilder
-        .stream("game.event", Consumed.with(stringSerde, eventDtoSerde))
+        .stream(eventsTopic, Consumed.with(stringSerde, eventDtoSerde))
         .split(Named.as(branchPrefix))
-        .branch((key, value) -> value.getType() == EventType.PLAYER_DEAL_DAMAGE, Branched.as("player-damage"))
-        .branch((key, value) -> value.getType() == EventType.SYSTEM_EVENT_BOSS_SPAWNED, Branched.as("boss-spawned"))
+        .branch((key, value) -> value.getType() == EventType.PLAYER_DEAL_DAMAGE, Branched.as(BRANCH_NAME_PLAYER_DAMAGE))
+        .branch((key, value) -> value.getType() == EventType.SYSTEM_EVENT_BOSS_SPAWNED, Branched.as(BRANCH_NAME_BOSS_SPAWNED))
         .noDefaultBranch();
-    var playerDamageStream = branches.get(branchPrefix + "player-damage")
+    var playerDamageStream = branches.get(branchPrefix + BRANCH_NAME_PLAYER_DAMAGE)
         .mapValues(eventDto -> (PlayerDealDamageEventDto) eventDto)
         .process(() -> accumulatorObjectProvider.getObject(), STORE_NAME_PLAYER_DAMAGE);
-    var bossSpawnedStream = branches.get(branchPrefix + "boss-spawned")
+    var bossSpawnedStream = branches.get(branchPrefix + BRANCH_NAME_BOSS_SPAWNED)
         .mapValues(eventDto -> (BossSpawnedSystemEventDto) eventDto);
     return Map.of(
-        branchPrefix + "player-damage", playerDamageStream,
-        branchPrefix + "boss-spawned", bossSpawnedStream
+        branchPrefix + BRANCH_NAME_PLAYER_DAMAGE, playerDamageStream,
+        branchPrefix + BRANCH_NAME_BOSS_SPAWNED, bossSpawnedStream
     );
   }
 
@@ -126,13 +130,13 @@ public class KafkaStreamsConfig {
   public KStream<String, Double> playerDamageStream(
       @Qualifier("topology") Map<String, KStream<String, ?>> branches
   ) {
-    return (KStream<String, Double>) branches.get("game.event-player-damage");
+    return (KStream<String, Double>) branches.get(branchPrefix + BRANCH_NAME_PLAYER_DAMAGE);
   }
 
   @Bean
   public KStream<String, BossSpawnedSystemEventDto> bossSpawnedStream(
       @Qualifier("topology") Map<String, KStream<String, ?>> branches
   ) {
-    return (KStream<String, BossSpawnedSystemEventDto>) branches.get("game.event-boss-spawned");
+    return (KStream<String, BossSpawnedSystemEventDto>) branches.get(branchPrefix + BRANCH_NAME_BOSS_SPAWNED);
   }
 }
