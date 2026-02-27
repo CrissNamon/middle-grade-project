@@ -1,0 +1,12 @@
+server:
+  port: 8097
+spring:
+  application:
+    name: statistic-service
+  main:
+    lazy-initialization: false
+  kafka:
+    bootstrap-servers: localhost:9095
+app:
+  events:
+    topic: game.event
