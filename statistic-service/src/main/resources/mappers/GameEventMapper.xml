@@ -5,7 +5,7 @@
 <mapper namespace="ru.danilarassokhin.statistic.mapper.GameEventMapper">
 
   <resultMap id="gameEventResult" type="ru.danilarassokhin.statistic.dto.GameEventDto">
-    <result property="id" column="id"/>
+    <result property="id" column="id" javaType="java.util.UUID"/>
     <result property="dateTime" column="dateTime"/>
     <result property="type" column="type"/>
     <result property="playerId" column="playerId"/>

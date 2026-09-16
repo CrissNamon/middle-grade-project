@@ -8,12 +8,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
 import ru.danilarassokhin.messaging.dto.event.EventDto;
 import ru.danilarassokhin.statistic.annotation.EmbeddedKafkaTest;
+import ru.danilarassokhin.statistic.config.IntegrationTest;
 import ru.danilarassokhin.statistic.service.impl.GlobalFeedService;
 import ru.danilarassokhin.statistic.util.PojoCreator;
 
 @SpringBootTest
 @EmbeddedKafkaTest
-public class GlobalFeedServiceTest {
+public class GlobalFeedServiceTest extends IntegrationTest {
 
   @Autowired
   GlobalFeedService globalFeedService;
