@@ -3,12 +3,14 @@ package ru.danilarassokhin.statistic.dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import lombok.Builder;
 import lombok.Data;
 
 /**
  * DTO для событий из таблицы game_events в ClickHouse.
  */
 @Data
+@Builder
 public class GameEventDto {
 
   private UUID id;
