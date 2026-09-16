@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS game_events_queue
 )
 ENGINE = Kafka
 SETTINGS
-    kafka_broker_list = 'localhost:9095',
+    kafka_broker_list = '${kafka-bootstrap-servers}',
     kafka_topic_list = 'game.event',
     kafka_group_name = 'clickhouse_game_events',
     kafka_format = 'JSONEachRow',
