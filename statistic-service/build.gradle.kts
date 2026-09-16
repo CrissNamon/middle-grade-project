@@ -38,7 +38,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("com.clickhouse:clickhouse-jdbc:0.7.2")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.4.3")
-    implementation("org.flywaydb:flyway-core:10.24.0")
+    implementation("org.flywaydb:flyway-core:13.6.0")
     implementation("org.flywaydb:flyway-database-clickhouse:10.24.0")
 
     implementation("org.apache.commons:commons-lang3:3.17.0")

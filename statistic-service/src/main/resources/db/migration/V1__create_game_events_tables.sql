@@ -1,4 +1,3 @@
--- Kafka engine table: reads raw JSON events from the game.event topic
 CREATE TABLE IF NOT EXISTS game_events_queue
 (
     id            UUID,
@@ -16,7 +15,6 @@ SETTINGS
     kafka_format = 'JSONEachRow',
     kafka_num_consumers = 1;
 
--- MergeTree table: persistent queryable storage for game events
 CREATE TABLE IF NOT EXISTS game_events
 (
     id            UUID,
@@ -30,7 +28,6 @@ ENGINE = MergeTree
 PARTITION BY toYYYYMM(dateTime)
 ORDER BY (type, dateTime);
 
--- Materialized View: pipes data from Kafka engine table to MergeTree
 CREATE MATERIALIZED VIEW IF NOT EXISTS game_events_mv TO game_events AS
 SELECT
     id,
