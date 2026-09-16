@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 @MappedTypes(UUID.class)
-public class ClickHouseUUIDTypeHandler extends BaseTypeHandler<UUID> {
+public class UUIDTypeHandler extends BaseTypeHandler<UUID> {
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, UUID parameter, JdbcType jdbcType) throws SQLException {
