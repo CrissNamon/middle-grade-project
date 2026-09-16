@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ru.danilarassokhin.statistic.mapper.GameEventMapper">
+
+  <resultMap id="gameEventResult" type="ru.danilarassokhin.statistic.dto.GameEventDto">
+    <result property="id" column="id"/>
+    <result property="dateTime" column="dateTime"/>
+    <result property="type" column="type"/>
+    <result property="playerId" column="playerId"/>
+    <result property="damage" column="damage"/>
+    <result property="bossId" column="bossId"/>
+  </resultMap>
+
+  <select id="findByFilters" resultMap="gameEventResult">
+    SELECT id, dateTime, type, playerId, damage, bossId
+    FROM game_events
+    <where>
+      <if test="type != null">
+        AND type = #{type}
+      </if>
+      <if test="playerId != null">
+        AND playerId = #{playerId}
+      </if>
+      <if test="bossId != null">
+        AND bossId = #{bossId}
+      </if>
+      <if test="from != null">
+        AND dateTime &gt;= #{from}
+      </if>
+      <if test="to != null">
+        AND dateTime &lt;= #{to}
+      </if>
+    </where>
+    ORDER BY dateTime DESC
+    LIMIT #{limit, jdbcType=INTEGER}
+  </select>
+
+</mapper>

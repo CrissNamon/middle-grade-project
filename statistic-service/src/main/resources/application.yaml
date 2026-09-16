@@ -7,6 +7,21 @@ spring:
     lazy-initialization: false
   kafka:
     bootstrap-servers: localhost:9095
+  datasource:
+    url: jdbc:clickhouse://localhost:8123/default
+    username: default
+    password:
+    driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
+  flyway:
+    enabled: true
+    url: jdbc:clickhouse://localhost:8123/default
+    user: default
+    password:
+    locations: classpath:db/migration
+mybatis:
+  mapper-locations: classpath:mappers/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
 app:
   events:
     topic: game.event
