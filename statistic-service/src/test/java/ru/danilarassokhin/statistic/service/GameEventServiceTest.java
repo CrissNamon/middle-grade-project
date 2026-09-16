@@ -7,30 +7,21 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.simple.JdbcClient;
 import ru.danilarassokhin.statistic.config.IntegrationTest;
 import ru.danilarassokhin.statistic.dto.GameEventDto;
+import ru.danilarassokhin.statistic.mapper.GameEventMapper;
 
 public class GameEventServiceTest extends IntegrationTest {
 
-  private static final String INSERT_SQL = """
-    INSERT INTO game_events(id, dateTime, type, playerId, damage, bossId)
-    VALUES (:id, :dateTime, :type, :playerId, :damage, :bossId);
-  """;
-
-  private static final String CLEAN_SQL = """
-    TRUNCATE TABLE game_events;
-  """;
+  @Autowired
+  private GameEventMapper gameEventMapper;
 
   @Autowired
   private GameEventService gameEventService;
 
-  @Autowired
-  private JdbcClient jdbcClient;
-
   @BeforeEach
   void init() {
-    jdbcClient.sql(CLEAN_SQL).update();
+    gameEventMapper.truncate();
   }
 
   @Test
@@ -43,20 +34,15 @@ public class GameEventServiceTest extends IntegrationTest {
       .damage(2.0)
       .bossId(3)
       .build();
-    createGameEvent(event);
+    gameEventMapper.insert(event);
     var result = gameEventService.findByFilters(null, null, null, null, null, null);
     Assertions.assertEquals(1, result.size());
-  }
-
-  private void createGameEvent(GameEventDto dto) {
-    jdbcClient.sql(INSERT_SQL)
-      .param("id", dto.getId())
-      .param("dateTime", dto.getDateTime())
-      .param("type", dto.getType())
-      .param("playerId", dto.getPlayerId())
-      .param("damage", dto.getDamage())
-      .param("bossId", dto.getBossId())
-      .update();
+    Assertions.assertEquals(event.getId(), result.get(0).getId());
+    Assertions.assertEquals(event.getType(), result.get(0).getType());
+    Assertions.assertEquals(event.getDamage(), result.get(0).getDamage());
+    Assertions.assertEquals(event.getPlayerId(), result.get(0).getPlayerId());
+    Assertions.assertEquals(event.getBossId(), result.get(0).getBossId());
+    Assertions.assertEquals(event.getDateTime().toLocalDate(), result.get(0).getDateTime().toLocalDate());
   }
 
 

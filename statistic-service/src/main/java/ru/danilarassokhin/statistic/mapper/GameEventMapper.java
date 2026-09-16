@@ -21,4 +21,8 @@ public interface GameEventMapper {
       @Param("to") LocalDateTime to,
       @Param("limit") Integer limit
   );
+
+  void insert(GameEventDto gameEventDto);
+
+  void truncate();
 }

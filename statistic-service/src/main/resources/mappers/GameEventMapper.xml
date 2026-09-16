@@ -37,4 +37,13 @@
     LIMIT #{limit, jdbcType=INTEGER}
   </select>
 
+  <insert id="insert" useGeneratedKeys="false" parameterType="ru.danilarassokhin.statistic.dto.GameEventDto">
+      INSERT INTO game_events(id, dateTime, type, playerId, damage, bossId)
+      VALUES (#{id}, #{dateTime}, #{type}, #{playerId}, #{damage}, #{bossId});
+  </insert>
+
+  <update id="truncate" useGeneratedKeys="false">
+      TRUNCATE TABLE game_events;
+  </update>
+
 </mapper>
