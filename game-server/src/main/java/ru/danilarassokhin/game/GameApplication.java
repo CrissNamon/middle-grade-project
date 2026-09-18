@@ -10,6 +10,7 @@ import ru.danilarassokhin.game.config.ComponentsConfig;
 import ru.danilarassokhin.game.config.DataSourceConfig;
 import ru.danilarassokhin.game.config.HttpConfig;
 import ru.danilarassokhin.game.config.KafkaConfig;
+import ru.danilarassokhin.game.config.QuartzConfig;
 import ru.danilarassokhin.game.config.SecurityConfig;
 import ru.danilarassokhin.game.security.HttpSecurity;
 import ru.danilarassokhin.game.security.JwtHttpFilter;
@@ -40,7 +41,8 @@ public class GameApplication {
     var configurations = List.of(ApplicationConfig.class, ResilienceConfig.class,
                                  SqlConfig.class, CacheConfig.class, ComponentsConfig.class,
                                  DataSourceConfig.class, CamundaConfig.class, WebConfig.class,
-                                 HttpConfig.class, SecurityConfig.class, KafkaConfig.class);
+                                 HttpConfig.class, SecurityConfig.class, KafkaConfig.class,
+                                 QuartzConfig.class);
     configurations.forEach(c -> diContainer.loadConfiguration(c, packageScanner));
 
     var jwtHttpFilter = new JwtHttpFilter(diContainer.getBean(HttpSecurity.class),
