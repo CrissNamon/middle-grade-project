@@ -8,12 +8,6 @@ import org.quartz.spi.TriggerFiredBundle;
 import tech.hiddenproject.progressive.BasicComponentManager;
 import tech.hiddenproject.progressive.injection.DIContainer;
 
-/**
- * Produces job instances from DI container instead of instantiating them reflectively.
- *
- * <p>If job class is not registered as a bean, then it is created by component creator, so
- * {@link tech.hiddenproject.progressive.annotation.Autofill} constructors are still injected.
- */
 @RequiredArgsConstructor
 public class DiJobFactory implements JobFactory {
 

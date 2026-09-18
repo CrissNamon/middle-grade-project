@@ -22,21 +22,9 @@ import tech.hiddenproject.progressive.BasicComponentManager;
 import tech.hiddenproject.progressive.annotation.Configuration;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
-/**
- * Quartz scheduler backed by application database.
- *
- * <p>Scheduler is configured by {@code quartz.*} properties: every such property is passed to
- * {@link StdSchedulerFactory} as {@code org.quartz.*} one. Job store keeps its state in
- * {@code qrtz_*} tables (see {@code V6.0__added_quartz_scheduler.sql}) and takes connections from
- * application {@link DataSource}, so scheduler shares Hikari pool with the rest of application and
- * survives restarts.
- */
 @Configuration
 public class QuartzConfig {
 
-  /**
-   * Name of data source registered in {@link DBConnectionManager} for Quartz job store.
-   */
   public static final String QUARTZ_DATA_SOURCE_NAME = "gameDataSource";
 
   private static final String QUARTZ_PROPERTY_PREFIX = "quartz";

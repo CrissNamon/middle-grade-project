@@ -9,10 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.quartz.utils.ConnectionProvider;
 import tech.hiddenproject.progressive.annotation.Autofill;
 
-/**
- * Gives Quartz job store connections from application {@link DataSource} instead of letting it
- * open its own pool.
- */
 @RequiredArgsConstructor(onConstructor_ = {@Autofill})
 public class DataSourceConnectionProvider implements ConnectionProvider {
 

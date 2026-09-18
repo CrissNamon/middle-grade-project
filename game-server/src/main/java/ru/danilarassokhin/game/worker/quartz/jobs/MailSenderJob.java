@@ -19,13 +19,6 @@ import ru.danilarassokhin.util.PropertiesFactory;
 import tech.hiddenproject.progressive.annotation.Autofill;
 import tech.hiddenproject.progressive.annotation.GameBean;
 
-/**
- * Takes one unprocessed mail, marks it as processed and sends it to Kafka.
- *
- * <p>Mail is locked by {@code SELECT ... FOR UPDATE SKIP LOCKED}, so job is safe to run on several
- * application instances. {@link DisallowConcurrentExecution} additionally prevents overlapping of
- * executions of the same job within the whole cluster.
- */
 @GameBean
 @DisallowConcurrentExecution
 @Slf4j

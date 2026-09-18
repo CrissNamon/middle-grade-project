@@ -1,8 +1,5 @@
 package ru.danilarassokhin.game.exception;
 
-/**
- * Exception for Quartz scheduler errors.
- */
 public class QuartzException extends RuntimeException {
 
   public QuartzException(Throwable cause) {

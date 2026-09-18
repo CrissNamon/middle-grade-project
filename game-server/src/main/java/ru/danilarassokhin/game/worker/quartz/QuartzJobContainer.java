@@ -10,12 +10,6 @@ import ru.danilarassokhin.game.exception.QuartzException;
 import ru.danilarassokhin.server.config.WebConfig;
 import tech.hiddenproject.progressive.basic.manager.BasicGamePublisher;
 
-/**
- * Registers {@link QuartzJobWorker}s in {@link Scheduler} and starts it.
- *
- * <p>Jobs are stored with replacement, so job store always keeps definitions of currently deployed
- * code and restart of application does not produce duplicates.
- */
 @Slf4j
 public class QuartzJobContainer {
 
@@ -29,11 +23,6 @@ public class QuartzJobContainer {
         .subscribeOn(WebConfig.WEB_SERVER_SHUTDOWN_EVENT_NAME, event -> shutdown());
   }
 
-  /**
-   * Stores job with its trigger replacing previously stored definition.
-   *
-   * @param jobWorker Job to schedule
-   */
   public void scheduleJob(QuartzJobWorker jobWorker) {
     try {
       var jobDetail = jobWorker.getJobDetail();
