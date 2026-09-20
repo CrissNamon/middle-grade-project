@@ -28,6 +28,8 @@ dependencies {
     implementation(project(":utils"))
     implementation("org.apache.commons:commons-lang3:3.17.0")
     implementation("tech.hiddenproject:aide-optional:1.3")
+    //Scheduler
+    implementation("org.quartz-scheduler:quartz:2.3.2")
     //Logging
     implementation("org.slf4j:slf4j-reload4j:2.0.16")
     //Database
