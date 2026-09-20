@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.danilarassokhin.statistic.config.IntegrationTest;
 import ru.danilarassokhin.statistic.dto.GameEventDto;
+import ru.danilarassokhin.statistic.dto.GameEventFilter;
 import ru.danilarassokhin.statistic.mapper.GameEventMapper;
 
 public class GameEventServiceTest extends IntegrationTest {
@@ -35,7 +36,7 @@ public class GameEventServiceTest extends IntegrationTest {
       .bossId(3)
       .build();
     gameEventMapper.insert(event);
-    var result = gameEventService.findByFilters(null, null, null, null, null, null);
+    var result = gameEventService.findByFilters(new GameEventFilter());
     Assertions.assertEquals(1, result.size());
     Assertions.assertEquals(event.getId(), result.get(0).getId());
     Assertions.assertEquals(event.getType(), result.get(0).getType());
