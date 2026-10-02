@@ -23,12 +23,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 public class EventDto {
 
   private final UUID id;
-  private final LocalDateTime localDateTime;
+  private final LocalDateTime dateTime;
   private final EventType type;
 
-  public EventDto(UUID id, LocalDateTime localDateTime, EventType type) {
+  public EventDto(UUID id, LocalDateTime dateTime, EventType type) {
     this.id = id;
-    this.localDateTime = localDateTime;
+    this.dateTime = dateTime;
     this.type = type;
   }
 
@@ -36,8 +36,8 @@ public class EventDto {
     return id;
   }
 
-  public LocalDateTime getLocalDateTime() {
-    return localDateTime;
+  public LocalDateTime getDateTime() {
+    return dateTime;
   }
 
   public EventType getType() {

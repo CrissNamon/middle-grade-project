@@ -34,6 +34,13 @@ dependencies {
     implementation(project(":messaging"))
 
 
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("com.clickhouse:clickhouse-jdbc:0.7.2")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.3")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-clickhouse:10.21.0")
+
     implementation("org.apache.commons:commons-lang3:3.17.0")
 
     compileOnly("org.projectlombok:lombok")
@@ -47,6 +54,9 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:clickhouse")
 }
 
 

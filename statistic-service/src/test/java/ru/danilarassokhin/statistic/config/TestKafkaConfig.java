@@ -35,6 +35,4 @@ public class TestKafkaConfig {
     return new KafkaTemplate<>(producerFactory(embeddedKafkaBroker));
   }
 
-
-
 }
